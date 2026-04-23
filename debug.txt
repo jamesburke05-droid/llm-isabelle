@@ -1,0 +1,94 @@
+=== finished_ok called with responses: ===
+  [0] raw_type=<IsabelleResponseType.OK: 'OK'>
+       normalized='OK'
+       body_type=Task
+       body_repr=Task(task='df8a9525-28d1-4527-bdaf-35f1b0b4df43')
+    [decode] type=isabelle_client.data_models.Task
+    [decode] is_dataclass=False
+    [decode] has _asdict=False
+    [decode] has model_dump=True
+    [decode] has __dict__=True
+       decoded_dict={'task': 'df8a9525-28d1-4527-bdaf-35f1b0b4df43'}
+  [1] raw_type=<IsabelleResponseType.NOTE: 'NOTE'>
+       normalized='NOTE'
+       body_type=Task
+       body_repr=Task(task='df8a9525-28d1-4527-bdaf-35f1b0b4df43')
+    [decode] type=isabelle_client.data_models.Task
+    [decode] is_dataclass=False
+    [decode] has _asdict=False
+    [decode] has model_dump=True
+    [decode] has __dict__=True
+       decoded_dict={'task': 'df8a9525-28d1-4527-bdaf-35f1b0b4df43'}
+  [2] raw_type=<IsabelleResponseType.NOTE: 'NOTE'>
+       normalized='NOTE'
+       body_type=Task
+       body_repr=Task(task='df8a9525-28d1-4527-bdaf-35f1b0b4df43')
+    [decode] type=isabelle_client.data_models.Task
+    [decode] is_dataclass=False
+    [decode] has _asdict=False
+    [decode] has model_dump=True
+    [decode] has __dict__=True
+       decoded_dict={'task': 'df8a9525-28d1-4527-bdaf-35f1b0b4df43'}
+  [3] raw_type=<IsabelleResponseType.FINISHED: 'FINISHED'>
+       normalized='FINISHED'
+       body_type=UseTheoriesResults
+       body_repr=UseTheoriesResults(ok=True, errors=[], nodes=[NodeResult(node_name='/cygdrive/c/Users/JAMESB~1/AppData/Local/Temp/tmpag1avk5y/Scratch.thy', theory_name='Draft.Scratch', status=NodeStatus(ok=True, total=8, unprocessed=0, running=0, warned=0, failed=0, finished=8, canceled=False, consolidated=True, percentage=100), messages=[Message(kind='writeln', message='theorem ?x + ?y = ?y + ?x', pos=Position(line=5, offset=66, end_offset=68, file='/cygdrive/c/Users/JAMESB~1/AppData/Local/Tem
+    [decode] type=isabelle_client.data_models.UseTheoriesResults
+    [decode] is_dataclass=False
+    [decode] has _asdict=False
+    [decode] has model_dump=True
+    [decode] has __dict__=True
+       decoded_dict={'ok': True, 'errors': [], 'nodes': [{'node_name': '/cygdrive/c/Users/JAMESB~1/AppData/Local/Temp/tmpag1avk5y/Scratch.thy', 'theory_name': 'Draft.Scratch', 'status': {'ok': True, 'total': 8, 'unprocessed': 0, 'running': 0, 'warned': 0, 'failed': 0, 'finished': 8, 'canceled': False, 'consolidated': True, 'percentage': 100}, 'messages': [{'kind': 'writeln', 'message': 'theorem ?x + ?y = ?y + ?x', 'pos': {'line': 5, 'offset': 66, 'end_offset': 68, 'file': '/cygdrive/c/Users/JAME
+=== end responses ===
+    [decode] type=isabelle_client.data_models.UseTheoriesResults
+    [decode] is_dataclass=False
+    [decode] has _asdict=False
+    [decode] has model_dump=True
+    [decode] has __dict__=True
+=== finished_ok called with responses: ===
+  [0] raw_type=<IsabelleResponseType.OK: 'OK'>
+       normalized='OK'
+       body_type=Task
+       body_repr=Task(task='e8eb5f7c-5c38-41fe-9699-eb81639fa0cd')
+    [decode] type=isabelle_client.data_models.Task
+    [decode] is_dataclass=False
+    [decode] has _asdict=False
+    [decode] has model_dump=True
+    [decode] has __dict__=True
+       decoded_dict={'task': 'e8eb5f7c-5c38-41fe-9699-eb81639fa0cd'}
+  [1] raw_type=<IsabelleResponseType.NOTE: 'NOTE'>
+       normalized='NOTE'
+       body_type=Task
+       body_repr=Task(task='e8eb5f7c-5c38-41fe-9699-eb81639fa0cd')
+    [decode] type=isabelle_client.data_models.Task
+    [decode] is_dataclass=False
+    [decode] has _asdict=False
+    [decode] has model_dump=True
+    [decode] has __dict__=True
+       decoded_dict={'task': 'e8eb5f7c-5c38-41fe-9699-eb81639fa0cd'}
+  [2] raw_type=<IsabelleResponseType.NOTE: 'NOTE'>
+       normalized='NOTE'
+       body_type=Task
+       body_repr=Task(task='e8eb5f7c-5c38-41fe-9699-eb81639fa0cd')
+    [decode] type=isabelle_client.data_models.Task
+    [decode] is_dataclass=False
+    [decode] has _asdict=False
+    [decode] has model_dump=True
+    [decode] has __dict__=True
+       decoded_dict={'task': 'e8eb5f7c-5c38-41fe-9699-eb81639fa0cd'}
+  [3] raw_type=<IsabelleResponseType.FINISHED: 'FINISHED'>
+       normalized='FINISHED'
+       body_type=UseTheoriesResults
+       body_repr=UseTheoriesResults(ok=True, errors=[], nodes=[NodeResult(node_name='/cygdrive/c/Users/JAMESB~1/AppData/Local/Temp/tmp3ts90xnf/Scratch.thy', theory_name='Draft.Scratch', status=NodeStatus(ok=True, total=8, unprocessed=0, running=0, warned=0, failed=0, finished=8, canceled=False, consolidated=True, percentage=100), messages=[Message(kind='writeln', message='theorem ?x + ?y = ?y + ?x', pos=Position(line=5, offset=66, end_offset=68, file='/cygdrive/c/Users/JAMESB~1/AppData/Local/Tem
+    [decode] type=isabelle_client.data_models.UseTheoriesResults
+    [decode] is_dataclass=False
+    [decode] has _asdict=False
+    [decode] has model_dump=True
+    [decode] has __dict__=True
+       decoded_dict={'ok': True, 'errors': [], 'nodes': [{'node_name': '/cygdrive/c/Users/JAMESB~1/AppData/Local/Temp/tmp3ts90xnf/Scratch.thy', 'theory_name': 'Draft.Scratch', 'status': {'ok': True, 'total': 8, 'unprocessed': 0, 'running': 0, 'warned': 0, 'failed': 0, 'finished': 8, 'canceled': False, 'consolidated': True, 'percentage': 100}, 'messages': [{'kind': 'writeln', 'message': 'theorem ?x + ?y = ?y + ?x', 'pos': {'line': 5, 'offset': 66, 'end_offset': 68, 'file': '/cygdrive/c/Users/JAME
+=== end responses ===
+    [decode] type=isabelle_client.data_models.UseTheoriesResults
+    [decode] is_dataclass=False
+    [decode] has _asdict=False
+    [decode] has model_dump=True
+    [decode] has __dict__=True

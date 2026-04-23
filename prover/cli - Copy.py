@@ -232,34 +232,12 @@ def main():
     server_info = proc = isabelle = session_id = None
 
     try:
-        env_info = os.environ.get("ISABELLE_SERVER_INFO", "").strip()
-        if env_info:
-            # Use an already-running server (started manually via `isabelle server`)
-            print(f"Using ISABELLE_SERVER_INFO: {env_info}")
-            isabelle = get_isabelle_client(env_info)
-            proc = None
-        else:
-            server_info, proc = start_isabelle_server(name="isabelle", log_file="server.log")
-            print(f"server_info={server_info!r}")  # debug: see what we actually got
-            if not server_info or not server_info.strip():
-                raise RuntimeError(
-                    "start_isabelle_server returned empty server info. "
-                    "Run `isabelle server` manually and export ISABELLE_SERVER_INFO."
-                )
-            isabelle = get_isabelle_client(server_info)
-
-        # session_start returns a list of IsabelleResponse objects;
-        # pull the actual session_id out of the FINISHED response.
-        responses = isabelle.session_start(session="HOL")
-        session_id = None
-        for r in responses:
-            body = getattr(r, "response_body", None)
-            sid = getattr(body, "session_id", None)
-            if sid:
-                session_id = sid
-                break
-        if session_id is None:
-            raise RuntimeError(f"Failed to start HOL session. Responses: {responses}")
+        server_info, proc = start_isabelle_server(name="isabelle", log_file="server.log")
+        print(server_info.strip())
+      #  isabelle = get_isabelle_client(server_info)
+        from isabelle_client import IsabelleClient
+        isabelle = IsabelleClient("127.0.0.1", 54707, "4e8ddf3c-4527-4bf6-b570-492589c5dc05")
+        session_id = isabelle.session_start(session="HOL")
         print("session_id:", session_id)
 
         # Mine macros from existing logs (fast; skips if file missing)

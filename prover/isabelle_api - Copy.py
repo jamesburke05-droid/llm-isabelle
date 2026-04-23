@@ -6,199 +6,7 @@ from typing import List, Tuple, Optional, Dict, Any
 from concurrent.futures import ThreadPoolExecutor, TimeoutError as FuturesTimeout
 
 # Re-export these (cli.py and experiments.py import them from here)
-from isabelle_client import (
-    start_isabelle_server as _upstream_start_isabelle_server,
-    get_isabelle_client,
-    IsabelleResponse,
-)
-
-import sys
-import re as _re
-import subprocess
-import threading
-from queue import Queue, Empty
-import time as _time
-
-_BANNER_RE = _re.compile(
-    r'server\s+"[^"]*"\s*=\s*[\d\.]+:\d+\s*\(password\s*"[^"]*"\)'
-)
-
-def _to_cygwin_path(p: str) -> str:
-    """
-    Convert a Windows path like 'C:\\Users\\...\\tmpXYZ' to a Cygwin path like
-    '/cygdrive/c/Users/.../tmpXYZ'. Isabelle's server runs inside Cygwin and
-    rejects paths containing ':' (drive letter). No-op on non-Windows.
-    """
-    if not sys.platform.startswith("win"):
-        return p
-    p = os.path.abspath(p)
-    # Already cygwin-style?
-    if p.startswith("/cygdrive/") or (p.startswith("/") and ":" not in p):
-        return p
-    if len(p) >= 2 and p[1] == ":":
-        drive = p[0].lower()
-        rest = p[2:].replace("\\", "/")
-        if not rest.startswith("/"):
-            rest = "/" + rest
-        return f"/cygdrive/{drive}{rest}"
-    return p.replace("\\", "/")
-
-def _find_isabelle_home() -> Optional[str]:
-    """
-    Locate the Isabelle install root (the directory that contains bin/isabelle
-    AND contrib/cygwin/bin/bash.exe). Honors $ISABELLE_HOME, else scans common
-    Windows install roots for the nested Isabelle*/Isabelle*/bin layout.
-    """
-    def _valid(root: str) -> bool:
-        return (
-            os.path.isfile(os.path.join(root, "bin", "isabelle"))
-            and os.path.isfile(os.path.join(root, "contrib", "cygwin", "bin", "bash.exe"))
-        )
-
-    env = os.environ.get("ISABELLE_HOME", "").strip().strip('"')
-    if env and _valid(env):
-        return env
-
-    roots = [r"C:\\", os.path.expanduser(r"~\\AppData\\Local\\Programs")]
-    for root in roots:
-        if not os.path.isdir(root):
-            continue
-        try:
-            for name in os.listdir(root):
-                if not name.lower().startswith("isabelle"):
-                    continue
-                outer = os.path.join(root, name)
-                if not os.path.isdir(outer):
-                    continue
-                # Typical: C:\Isabelle2025-2\Isabelle2025-2\{bin,contrib,...}
-                inner = os.path.join(outer, name)
-                if _valid(inner):
-                    return inner
-                if _valid(outer):
-                    return outer
-        except OSError:
-            continue
-    return None
-
-
-def _start_isabelle_server_windows(
-    name: str = "isabelle",
-    log_file: Optional[str] = None,
-    port: int = 0,
-    startup_timeout_s: int = 120,
-):
-    """
-    Windows-native launcher. Replicates what Cygwin-Terminal.bat does
-    (sets HOME/PATH/LANG/CHERE_INVOKING, runs bundled Cygwin bash) and invokes
-    `bin/isabelle server -n <name>` through that bash, non-interactively.
-    Returns (banner_line: str, process: subprocess.Popen).
-    """
-    home = _find_isabelle_home()
-    if not home:
-        raise RuntimeError(
-            "Could not locate Isabelle install root. Set ISABELLE_HOME to the "
-            r"directory containing bin\\isabelle (e.g. C:\\Isabelle2025-2\\Isabelle2025-2)."
-        )
-
-    cygwin_bash = os.path.join(home, "contrib", "cygwin", "bin", "bash.exe")
-
-    # Bash command that runs under Isabelle's Cygwin env. We invoke the
-    # `bin/isabelle` script directly so the launcher's path munging works.
-    inner_cmd = f"bin/isabelle server -n {name}"
-    if port:
-        inner_cmd += f" -p {int(port)}"
-
-    # Mirror Cygwin-Terminal.bat's environment setup. CHERE_INVOKING tells
-    # the Cygwin profile to keep the current working directory.
-    env = os.environ.copy()
-    env["HOME"] = env.get("HOMEDRIVE", "") + env.get("HOMEPATH", "") or env.get("USERPROFILE", "")
-    env["LANG"] = "en_US.UTF-8"
-    env["CHERE_INVOKING"] = "true"
-    # Put Isabelle's bin first on PATH for the child; matches the .bat.
-    env["PATH"] = os.path.join(home, "bin") + os.pathsep + env.get("PATH", "")
-
-    creationflags = 0
-    if hasattr(subprocess, "CREATE_NO_WINDOW"):
-        creationflags |= subprocess.CREATE_NO_WINDOW
-
-    proc = subprocess.Popen(
-        [cygwin_bash, "--login", "-c", inner_cmd],
-        cwd=home,
-        stdout=subprocess.PIPE,
-        stderr=subprocess.STDOUT,
-        stdin=subprocess.DEVNULL,
-        bufsize=1,
-        universal_newlines=True,
-        env=env,
-        creationflags=creationflags,
-    )
-
-    q: "Queue[str]" = Queue()
-
-    def _reader():
-        try:
-            for line in proc.stdout:  # type: ignore[union-attr]
-                q.put(line)
-        except Exception:
-            pass
-        finally:
-            q.put("")
-
-    threading.Thread(target=_reader, daemon=True).start()
-
-    banner: Optional[str] = None
-    log_lines: List[str] = []
-    deadline = _time.monotonic() + startup_timeout_s
-    while True:
-        remaining = deadline - _time.monotonic()
-        if remaining <= 0:
-            break
-        try:
-            line = q.get(timeout=min(remaining, 1.0))
-        except Empty:
-            continue
-        if line == "":  # EOF from reader
-            break
-        log_lines.append(line)
-        m = _BANNER_RE.search(line)
-        if m:
-            banner = m.group(0)
-            break
-
-    if log_file:
-        try:
-            with open(log_file, "a", encoding="utf-8") as f:
-                f.writelines(log_lines)
-        except Exception:
-            pass
-
-    if not banner:
-        try:
-            proc.terminate()
-        except Exception:
-            pass
-        tail = "".join(log_lines[-30:]) or "(no output captured)"
-        raise RuntimeError(
-            f"Isabelle server did not print a banner within {startup_timeout_s}s.\n"
-            f"Cygwin bash: {cygwin_bash}\n"
-            f"Isabelle home: {home}\n"
-            f"Command: bin/isabelle server -n {name}\n"
-            f"Last output:\n{tail}"
-        )
-
-    return banner, proc
-
-
-def start_isabelle_server(name: str = "isabelle", log_file: Optional[str] = None, port: int = 0):
-    """
-    Cross-platform Isabelle server launcher.
-    Windows: runs bin/isabelle via Isabelle's bundled Cygwin bash (replicates
-    Cygwin-Terminal.bat's env) so Git Bash / MINGW64 doesn't interfere.
-    macOS/Linux: delegates to isabelle_client's upstream helper.
-    """
-    if sys.platform.startswith("win"):
-        return _start_isabelle_server_windows(name=name, log_file=log_file, port=port)
-    return _upstream_start_isabelle_server(name=name, log_file=log_file, port=port)
+from isabelle_client import start_isabelle_server, get_isabelle_client, IsabelleResponse
 
 # ------------------ Config (kept light and backwards-compatible) ------------------
 try:
@@ -265,56 +73,18 @@ def _normalize_type(rt: Any) -> str:
 
 
 def _decode_body_to_dict(body: Any) -> Optional[Dict[str, Any]]:
-    """Body may be dict / JSON string / bytes / typed object; return dict or None."""
+    """Body may be dict/JSON string/bytes; return dict or None."""
     if body is None:
         return None
-
-    if isinstance(body, dict):
-        return body
     if isinstance(body, (bytes, bytearray)):
         try:
             body = body.decode("utf-8", "replace")
         except Exception:
             body = str(body)
-    if isinstance(body, str):
-        try:
-            return json.loads(body)
-        except Exception:
-            return None
-    # Pydantic v2
-    if hasattr(body, "model_dump"):
-        try:
-            return dict(body.model_dump())
-        except Exception:
-            pass
-    # Pydantic v1
-    if hasattr(body, "dict") and callable(getattr(body, "dict")):
-        try:
-            return dict(body.dict())
-        except Exception:
-            pass
-    # NamedTuple (has _asdict)
-    if hasattr(body, "_asdict") and callable(getattr(body, "_asdict")):
-        try:
-            return dict(body._asdict())
-        except Exception:
-            pass
-    # dataclass
+    if isinstance(body, dict):
+        return body
     try:
-        import dataclasses
-        if dataclasses.is_dataclass(body):
-            return dataclasses.asdict(body)
-    except Exception:
-        pass
-    # __dict__ fallback
-    try:
-        d = getattr(body, "__dict__", None)
-        if isinstance(d, dict) and d:
-            return dict(d)
-    except Exception:
-        pass
-    try:
-        return dict(vars(body))
+        return json.loads(body)
     except Exception:
         return None
 
@@ -408,14 +178,9 @@ def run_theory(
             except Exception:
                 timeout_s = 0
         if timeout_s > 0:
+            # Always enforce a wall-clock timeout (even if native timeouts exist but are ignored).
             with ThreadPoolExecutor(max_workers=1) as ex:
-                fut = ex.submit(
-                    _use_theories_call,
-                    isabelle,
-                    session_id=session_id,
-                    master_dir=_to_cygwin_path(tmpdir.name),   # <-- changed
-                    timeout_s=timeout_s,
-                )
+                fut = ex.submit(_use_theories_call, isabelle, session_id=session_id, master_dir=tmpdir.name, timeout_s=timeout_s)
                 try:
                     return fut.result(timeout=timeout_s)
                 except FuturesTimeout:
@@ -425,11 +190,7 @@ def run_theory(
                     return []
 
         # No timeout requested → direct call
-        return list(isabelle.use_theories(
-            theories=["Scratch"],
-            session_id=session_id,
-            master_dir=_to_cygwin_path(tmpdir.name),
-        ))
+        return list(isabelle.use_theories(theories=["Scratch"], session_id=session_id, master_dir=tmpdir.name))
     finally:
         tmpdir.cleanup()
 
@@ -447,8 +208,6 @@ def finished_ok(resps: List[IsabelleResponse]) -> Tuple[bool, Dict[str, Any]]:
       - response body may be bytes, JSON string, or dict
       - dict-like or attribute-style access
     """
-
-
     # If our wall-clock timeout fired, treat as NOT proved (prevents false positives).
     if last_call_timed_out():
         return False, {"timeout": True}

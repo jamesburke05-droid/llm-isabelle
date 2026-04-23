@@ -1,0 +1,49 @@
+Unknown option: -n
+Usage: jedit [<options>] [<files>]
+	<file> +marker:<marker>: Positions caret at marker <marker>
+	<file> +line:<line>: Positions caret at line number <line>
+	<file> +line:<line>,<column>: Positions caret at line number <line> and column number <column>
+	--: End of options
+	-background: Run in background mode
+	-nobackground: Disable background mode (default)
+	-gui: Only if running in background mode; open initial view (default)
+	-nogui: Only if running in background mode; don't open initial view
+	-log=<level>: Log messages with level equal to or higher than this to
+	 standard error. <level> must be between 1 and 9. Default is 7.
+	-newplainview: Client instance opens a new plain view
+	-newview: Client instance opens a new view (default)
+	-plugins: Load plugins (default)
+	-noplugins: Don't load any plugins
+	-restore: Restore previously open files (default)
+	-norestore: Don't restore previously open files
+	-reuseview: Client instance reuses existing view
+	-quit: Quit a running instance
+	-run=<script>: Run the specified BeanShell script
+	-server: Read/write server info from/to $HOME/.jedit/server (default)
+	-server=<name>: Read/write server info from/to $HOME/.jedit/<name>
+	-noserver: Don't start edit server
+	-settings=<path>: Load user-specific settings from <path>
+	-nosettings: Don't load user-specific settings
+	-nosplash: Don't show splash screen
+	-startupscripts: Run startup scripts (default)
+	-nostartupscripts: Don't run startup scripts
+	-usage: Print this message and exit
+	-version: Print jEdit version and exit
+	-wait: Wait until the user closes the specified buffer in the server
+	 instance. Does nothing if passed to the initial jEdit instance.
+
+Report bugs to http://sourceforge.net/tracker/?group_id=588&atid=100588
+server "isabelle" = 127.0.0.1:53541 (password "a53a6830-1bb5-441e-8542-965ab630b141")
+server "isabelle" = 127.0.0.1:61552 (password "2a8ba3f8-837b-4e05-9539-b6b3dadee19e")
+server "isabelle" = 127.0.0.1:60531 (password "cfe93963-703f-4d4a-9a28-09555380c0fd")
+server "isabelle" = 127.0.0.1:57698 (password "2f2df90f-f60a-4c73-8794-69b2b473d52f")
+server "isabelle" = 127.0.0.1:61691 (password "4fa428a1-5a99-4c9f-a845-7346c5693220")
+server "isabelle" = 127.0.0.1:59888 (password "191ea4f4-64a1-4fde-85b1-48fe5787f139")
+server "isabelle" = 127.0.0.1:56729 (password "41a01f4a-b343-47fd-bd26-156cfb3d2709")
+server "isabelle" = 127.0.0.1:51003 (password "b38cd521-fc01-47aa-abf9-09ab71a0efb1")
+server "isabelle" = 127.0.0.1:65134 (password "0c8411e8-8d54-499f-98fb-d42043a7fb88")
+server "isabelle" = 127.0.0.1:59096 (password "ea35de91-a397-42e6-9945-50928f7c67b8")
+server "isabelle" = 127.0.0.1:55616 (password "4711205a-dba5-4577-a141-36d33d4659a0")
+server "isabelle" = 127.0.0.1:60704 (password "721839e4-2bc8-427b-8cbd-cf17549219fc")
+server "isabelle" = 127.0.0.1:50716 (password "9a4bd285-0b66-4c71-8a9b-113b2a7206d7")
+server "isabelle" = 127.0.0.1:62361 (password "b25891e4-e67f-49ed-bb28-62ddf6bc766d")
