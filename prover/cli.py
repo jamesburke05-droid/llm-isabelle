@@ -267,6 +267,14 @@ def main():
 
         # Single goal
         if args.goal and not args.goals_file:
+            # Strip optional `lemma "…"` wrapper and optional trailing `by …` / `sorry`
+            _m = re.match(
+                r'^\s*lemma\s+"(.*)"\s*(?:by\s+.*|sorry\s*)?\s*$',
+                args.goal,
+                flags=re.DOTALL,
+            )
+            if _m:
+                args.goal = _m.group(1).strip()
             res = _prove_one(isabelle, session_id, args.goal, CFG, args, macro_map=macro_map)
             flag = "TIMEOUT" if res.get("timeout") else ("SUCCESS" if res["success"] else "FAILED")
             print(f"\n{flag} | depth: {res['depth']}")
