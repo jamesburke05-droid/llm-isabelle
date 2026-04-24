@@ -57,3 +57,4 @@ server "isabelle" = 127.0.0.1:55205 (password "f9e5749d-1216-48d7-b85b-557089102
 server "isabelle" = 127.0.0.1:50529 (password "d494e810-5209-4ea7-9e94-57235ae1bb29")
 server "isabelle" = 127.0.0.1:56555 (password "21b2c554-21ea-4be6-8dbf-d732f5572684")
 server "isabelle" = 127.0.0.1:54562 (password "10fa428d-24cd-45d3-a588-df0503c34590")
+server "isabelle" = 127.0.0.1:55770 (password "232f2cad-9453-4ce4-a4f6-a0aa72aebde7")
