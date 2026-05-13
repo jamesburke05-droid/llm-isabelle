@@ -19,6 +19,22 @@ from prover.isabelle_api import (
 from prover.prover import prove_goal
 from planner.goals import _print_state_before_hole, _log_state_block, _effective_goal_from_state, _first_lemma_line, _extract_goal_from_lemma_line, _cleanup_resources, _verify_full_proof, _run_theory_with_timeout
 
+def _extract_session_id(responses) -> str:
+    """Unwrap session_id from isabelle_client's session_start() response list.
+
+    Newer isabelle_client versions return a list of IsabelleResponse objects
+    (with a Pydantic TaskOK in .response_body), not a bare session-id string.
+    """
+    if isinstance(responses, str):
+        return responses  # older client versions returned a str directly
+    for r in (responses or []):
+        body = getattr(r, "response_body", None)
+        sid = getattr(body, "session_id", None) if body is not None else None
+        if sid:
+            return sid
+    raise RuntimeError(f"Could not extract session_id from response: {responses!r}")
+
+
 def _hole_fingerprint(full_text: str, span: tuple[int, int], context: int = 80) -> str:
     """Stable key for a hole: hash a small window around the 'sorry'."""
     s, e = span
@@ -402,7 +418,7 @@ def plan_outline(goal: str, *, model: Optional[str] = None, outline_k: Optional[
     """Generate Isar outline with 'sorry' placeholders."""
     server_info, proc = start_isabelle_server(name="planner", log_file="logs/planner_ui.log")
     isa = get_isabelle_client(server_info)
-    session = isa.session_start(session=ISABELLE_SESSION)
+    session = _extract_session_id(isa.session_start(session=ISABELLE_SESSION))
     
     try:
         if legacy_single_outline:
@@ -441,7 +457,7 @@ def plan_and_fill(goal: str, model: Optional[str] = None, timeout: int = 100, *,
 
     server_info, proc = start_isabelle_server(name="planner", log_file="logs/planner_ui.log")
     isa = get_isabelle_client(server_info)
-    session = isa.session_start(session=ISABELLE_SESSION)
+    session = _extract_session_id(isa.session_start(session=ISABELLE_SESSION))
 
     t0 = time.monotonic()
     left_s = lambda: max(0.0, timeout - (time.monotonic() - t0))
@@ -464,7 +480,7 @@ def plan_and_fill(goal: str, model: Optional[str] = None, timeout: int = 100, *,
             pass
         server_info2, proc2 = start_isabelle_server(name="planner", log_file="logs/planner_ui.log")
         isa2 = get_isabelle_client(server_info2)
-        session2 = isa2.session_start(session=ISABELLE_SESSION)
+        session2 = _extract_session_id(isa2.session_start(session=ISABELLE_SESSION))
         isa, session, proc = isa2, session2, proc2
 
     try:
