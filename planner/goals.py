@@ -36,8 +36,10 @@ def _verify_full_proof(isabelle, session: str, text: str) -> bool:
         thy = build_theory(text.splitlines(), add_print_state=False, end_with=None)
         result = _run_theory_with_timeout(isabelle, session, thy, timeout_s=_ISA_VERIFY_TIMEOUT_S)
         ok, _ = finished_ok(result)
+        print(f"[DEBUG verify] result_count={len(result) if result else 0} ok={ok}")
         return ok
-    except Exception:
+    except Exception as e:
+        print(f"[DEBUG verify] exception: {type(e).__name__}: {e}")
         return False
 
 
