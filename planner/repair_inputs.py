@@ -107,23 +107,48 @@ def _quick_state_and_errors(isabelle, session: str, full_text: str) -> Tuple[str
         
         for r in resps or []:
             raw = getattr(r, "response_body", None)
-            if isinstance(raw, (bytes, bytearray)):
-                raw = raw.decode(errors="replace")
             
-            # Try structured JSON first
-            try:
-                data = json.loads(raw) if isinstance(raw, str) and raw.strip() else None
-                if isinstance(data, dict):
-                    for node in data.get("nodes", []):
-                        for msg in node.get("messages", []):
-                            if str(msg.get("kind", "")).lower() == "error":
-                                txt = str(msg.get("message", "") or "").strip()
-                                if txt:
-                                    errors.append({"text": txt, "line": msg.get("line")})
-            except (json.JSONDecodeError, TypeError, AttributeError):
-                pass
+            # Convert response_body (any shape) into a dict for structured parsing.
+            # Newer isabelle_client returns Pydantic objects (TaskOK, MessageNotification, etc.)
+            # whose plain dict form is exposed via .model_dump(). Older clients gave us
+            # JSON-as-string or already-decoded dicts.
+            data = None
+            if hasattr(raw, "model_dump"):
+                try:
+                    data = raw.model_dump()
+                except Exception:
+                    data = None
+            elif isinstance(raw, dict):
+                data = raw
+            elif isinstance(raw, (bytes, bytearray)):
+                try:
+                    decoded = raw.decode(errors="replace")
+                    data = json.loads(decoded) if decoded.strip().startswith("{") else None
+                    raw = decoded  # keep for later text-fallback parsing
+                except Exception:
+                    raw = raw.decode(errors="replace") if isinstance(raw, (bytes, bytearray)) else raw
+            elif isinstance(raw, str):
+                try:
+                    data = json.loads(raw) if raw.strip().startswith("{") else None
+                except (json.JSONDecodeError, TypeError):
+                    data = None
             
-            # Fallback: raw text parsing for error markers
+            # Structured error extraction
+            if isinstance(data, dict):
+                # Newer client: MessageNotification carries kind='error' at the top level
+                if str(data.get("kind", "")).lower() == "error":
+                    txt = str(data.get("message", "") or "").strip()
+                    if txt:
+                        errors.append({"text": txt, "line": data.get("line") or data.get("pos")})
+                # Older client / use_theories result: errors nested under nodes/messages
+                for node in data.get("nodes", []) or []:
+                    for msg in node.get("messages", []) or []:
+                        if str(msg.get("kind", "")).lower() == "error":
+                            txt = str(msg.get("message", "") or "").strip()
+                            if txt:
+                                errors.append({"text": txt, "line": msg.get("line")})
+            
+            # Fallback: raw text parsing for error markers (works only if raw is now a string)
             if isinstance(raw, str):
                 for pattern in ["*** Error:", "*** Outer syntax error", "*** Failed"]:
                     if pattern in raw:
