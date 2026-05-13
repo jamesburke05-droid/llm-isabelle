@@ -4,4 +4,5 @@ __pycache__/
 .DS_Store
 # If there are large log files or datasets you don't want to track:
 logs/
-datasets/
+datasets/server.log
+logs/
