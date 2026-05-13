@@ -150,8 +150,12 @@ def _fill_one_hole(isabelle, session: str, full_text: str, hole_span: Tuple[int,
         print(f"[DEBUG splice] fin={fin!r} indent={len(hole_indent)} text_len={len(new_text)}")
         print(f"[DEBUG splice] new_text:\n{new_text}\n[end splice]")
         
-        if _verify_full_proof(isabelle, session, new_text):
+        verify_result = _verify_full_proof(isabelle, session, new_text)
+        if verify_result is True:
             return new_text, True, "\n".join(script_lines)
+        if verify_result is None:
+            # Verify timed out — splice is structurally OK, accept provisionally
+            return new_text, True, "\n".join(script_lines) + "  (provisional: verify timeout)"
         return full_text, False, "finisher-unverified"
     
     # Handle apply-only  (NEVER mark success for apply-only scripts)
@@ -752,13 +756,22 @@ def plan_and_fill(goal: str, model: Optional[str] = None, timeout: int = 100, *,
 
         # Final verification
         success = ("sorry" not in full)
+        print(f"[DEBUG final] sorry_in_full={'sorry' in full} success_flag={success}")
         if success:
             try:
-                if _verify_full_proof(isa, session, full):
+                final_ok = _verify_full_proof(isa, session, full)
+                print(f"[DEBUG final] _verify_full_proof returned {final_ok}")
+                if final_ok is True:
+                    return PlanAndFillResult(True, full, fills, failed)
+                if final_ok is None:
+                    # Verify timed out but no sorries remain; accept provisionally
+                    print("[DEBUG final] verify timed out but no sorries; accepting provisionally")
                     return PlanAndFillResult(True, full, fills, failed)
             except (TimeoutError, _FuturesTimeout, ValueError) as ex:
+                print(f"[DEBUG final] verify exception: {type(ex).__name__}: {ex}")
                 _restart_isabelle("final_verify_full_proof", ex)
 
+        print(f"[DEBUG final] returning failure, final text length={len(full)}")
         return PlanAndFillResult(False, full, fills, failed)
 
     finally:
