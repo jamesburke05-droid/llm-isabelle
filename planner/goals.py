@@ -32,14 +32,17 @@ def _run_theory_with_timeout(isabelle, session: str, thy: List[str], *, timeout_
 
 def _verify_full_proof(isabelle, session: str, text: str) -> bool:
     """Return True iff the full Isar text checks under _ISA_VERIFY_TIMEOUT_S."""
+    print(f"[DEBUG verify] starting verify with timeout={_ISA_VERIFY_TIMEOUT_S}s, text_len={len(text)}")
+    import time as _t
+    _t0 = _t.monotonic()
     try:
         thy = build_theory(text.splitlines(), add_print_state=False, end_with=None)
         result = _run_theory_with_timeout(isabelle, session, thy, timeout_s=_ISA_VERIFY_TIMEOUT_S)
         ok, _ = finished_ok(result)
-        print(f"[DEBUG verify] result_count={len(result) if result else 0} ok={ok}")
+        print(f"[DEBUG verify] result_count={len(result) if result else 0} ok={ok} elapsed={_t.monotonic()-_t0:.1f}s")
         return ok
     except Exception as e:
-        print(f"[DEBUG verify] exception: {type(e).__name__}: {e}")
+        print(f"[DEBUG verify] exception after {_t.monotonic()-_t0:.1f}s: {type(e).__name__}: {e}")
         return False
 
 

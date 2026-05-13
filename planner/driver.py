@@ -136,9 +136,19 @@ def _fill_one_hole(isabelle, session: str, full_text: str, hole_span: Tuple[int,
     # Handle finisher
     if fin:
         script_lines = applies + [fin]
-        insert = "\n  " + "\n  ".join(script_lines) + "\n"
         s, e = hole_span
-        new_text = full_text[:s] + insert + full_text[e:]
+        # Find the start of the line containing the hole, to use its indent
+        line_start = full_text.rfind("\n", 0, s) + 1
+        hole_indent = " " * (s - line_start)
+        # Replace the entire hole-line (including its leading indent) with the script,
+        # using the same indentation that the 'sorry' had
+        insert = ("\n".join(hole_indent + ln.strip() for ln in script_lines))
+        new_text = full_text[:line_start] + insert + full_text[e:]
+        import time as _t
+        print("[DEBUG splice] sleeping 3s to let server settle...")
+        _t.sleep(3)
+        print(f"[DEBUG splice] fin={fin!r} indent={len(hole_indent)} text_len={len(new_text)}")
+        print(f"[DEBUG splice] new_text:\n{new_text}\n[end splice]")
         
         if _verify_full_proof(isabelle, session, new_text):
             return new_text, True, "\n".join(script_lines)

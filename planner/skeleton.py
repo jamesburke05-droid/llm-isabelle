@@ -80,8 +80,13 @@ def _ollama_generate_simple(
         },
         "stream": False,
     }
-    resp = _SESSION.post(url, json=payload, timeout=timeout_s or OLLAMA_TIMEOUT_S)
-    resp.raise_for_status()
+    rresp = _SESSION.post(url, json=payload, timeout=timeout_s or OLLAMA_TIMEOUT_S)
+    # DEBUG
+    print(f"[OLLAMA-DEBUG] status={rresp.status_code} temp={payload['options']['temperature']} num_predict={payload['options']['num_predict']} prompt_len={len(prompt)}")
+    if rresp.status_code >= 400:
+        print(f"[OLLAMA-DEBUG] body={rresp.text[:1000]}")
+    rresp.raise_for_status()
+    return rresp.json().get("response", "").strip()
     data = resp.json()
     return (data.get("response") or "").strip()
 
