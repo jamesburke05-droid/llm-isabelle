@@ -739,6 +739,23 @@ def _repair_block(current_text: str, lines: List[str], start: int, end: int, goa
             blk = _strip_wrapper_to_have_show(blk, block)
         elif block_type == "subproof":
             blk = _strip_wrapper_to_subproof(blk)              
+        
+        # Re-indent blk to match the original block's leading indentation.
+        # The strip helpers can return un-indented text; the splice point
+        # expects the same indentation as the block being replaced.
+        if blk and block:
+            orig_first = block.splitlines()[0] if block.splitlines() else ""
+            orig_indent = orig_first[:len(orig_first) - len(orig_first.lstrip(" "))]
+            new_first = blk.splitlines()[0] if blk.splitlines() else ""
+            new_indent = new_first[:len(new_first) - len(new_first.lstrip(" "))]
+            if orig_indent and new_indent != orig_indent:
+                # Shift each line by (orig_indent - new_indent)
+                # Simple approach: if new starts at col 0 and orig starts at col N, prepend N spaces to each line
+                shift = len(orig_indent) - len(new_indent)
+                if shift > 0:
+                    pad = " " * shift
+                    blk = "\n".join(pad + ln if ln.strip() else ln for ln in blk.splitlines())
+        
         if blk.strip() == block.strip():
             continue
         
@@ -765,9 +782,15 @@ def _repair_block(current_text: str, lines: List[str], start: int, end: int, goa
         patched_lines = lines[:start] + new_block_lines + lines[end:]
         patched = "\n".join(patched_lines)
         
+    
+        # ADD THESE TWO LINES
+        print(f"[DEBUG repair_block] patched proof:")
+        print(patched)
+        print("[end patched]")
+        
         thy = build_theory(patched.splitlines(), add_print_state=False, end_with=None)
         ok, _ = finished_ok(_run_theory_with_timeout(isabelle, session, thy, timeout_s=_ISA_VERIFY_TIMEOUT_S))
-        
+        print(f"[DEBUG repair_block] verify after patch: ok={ok}, block_type={block_type}, last_output_starts={blk_with_sorry[:60]!r}")
         if ok:
             return patched
         

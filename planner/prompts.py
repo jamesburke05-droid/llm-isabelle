@@ -49,8 +49,14 @@ PROOF_CONTEXT (lemma header and all proven statements before the BLOCK - you can
 {proof_context}
 CONTEXT
 
-ISABELLE_ERRORS (learn from previous errors and avoid generating proofs that have similar errors):
+ISABELLE_ERRORS (the residual subgoal Isabelle was left with after the failed tactic):
 {errors}
+
+Use the residual subgoal above to decide which tactic could close it.
+- If the residual is an arithmetic equality (commutativity/associativity of +, *), use `by (simp add: add.assoc add.commute)` or `by (simp add: ac_simps)`. Use `by linarith` only as a last resort, since it requires the terms to be linear-arithmetic ground terms.
+- If the residual involves list operations, try `by (simp add: append_assoc rev_append map_append)` as appropriate.
+- If the residual is closed by congruence, use `by (rule arg_cong)`.
+Avoid repeating tactics that already failed.
 
 COUNTEREXAMPLE_HINTS (learn from counterexamples of previous goals and avoid generating goals based on the counterexamples):
 {ce_hints}
@@ -129,8 +135,14 @@ PROOF_CONTEXT (lemma header and all proven statements before the BLOCK - you can
 {proof_context}
 CONTEXT
 
-ISABELLE_ERRORS (learn from previous errors and avoid generating proofs that have similar errors):
+ISABELLE_ERRORS (the residual subgoal Isabelle was left with after the failed tactic):
 {errors}
+
+Use the residual subgoal above to decide which tactic could close it.
+- If the residual is an arithmetic equality (commutativity/associativity of +, *), use `by (simp add: add.assoc add.commute)` or `by (simp add: ac_simps)`. Use `by linarith` only as a last resort, since it requires the terms to be linear-arithmetic ground terms.
+- If the residual involves list operations, try `by (simp add: append_assoc rev_append map_append)` as appropriate.
+- If the residual is closed by congruence, use `by (rule arg_cong)`.
+Avoid repeating tactics that already failed.
 
 COUNTEREXAMPLE_HINTS (learn from counterexamples of previous goals and avoid generating goals based on the counterexamples):
 {ce_hints}
