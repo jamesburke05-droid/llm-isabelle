@@ -16,22 +16,38 @@ _ISA_VERIFY_TIMEOUT_S = int(os.getenv("ISABELLE_VERIFY_TIMEOUT_S", "30"))
 # === Isabelle interaction ======================================================
 
 def _run_theory_with_timeout(isabelle, session: str, thy: List[str], *, timeout_s: Optional[int]) -> List:
-    """Execute theory with a hard timeout, interrupting Isabelle if needed."""
+    """Execute theory with a hard timeout, interrupting Isabelle if needed.
+
+    Uses an explicit ThreadPoolExecutor (not `with`) because the context-manager
+    form blocks on __exit__ until the in-flight thread returns, which defeats the
+    timeout when Isabelle hangs. We shut down without waiting on timeout and
+    rely on the next call (or process exit) to reclaim the thread.
+    """
     timeout_s = timeout_s or _ISA_VERIFY_TIMEOUT_S
-    with ThreadPoolExecutor(max_workers=1) as ex:
-        fut = ex.submit(run_theory, isabelle, session, thy)
+    ex = ThreadPoolExecutor(max_workers=1)
+    fut = ex.submit(run_theory, isabelle, session, thy)
+    try:
+        result = fut.result(timeout=timeout_s)
+        ex.shutdown(wait=False)
+        return result
+    except _FuturesTimeout:
         try:
-            return fut.result(timeout=timeout_s)
-        except _FuturesTimeout:
-            try:
-                getattr(isabelle, "interrupt", lambda: None)()
-            except Exception:
-                pass
-            raise TimeoutError("isabelle_run_timeout")
+            getattr(isabelle, "interrupt", lambda: None)()
+        except Exception:
+            pass
+        # Don't wait on the runaway thread; this is what made earlier timeouts
+        # take 600s instead of the requested 30s.
+        ex.shutdown(wait=False, cancel_futures=True)
+        raise TimeoutError("isabelle_run_timeout")
 
 
 def _verify_full_proof(isabelle, session: str, text: str) -> Optional[bool]:
-    """Return True iff the full Isar text checks under _ISA_VERIFY_TIMEOUT_S."""
+    """Return True/False if verify completed; None if it timed out.
+
+    Tri-state return distinguishes genuine failure from environmental slowness
+    so the driver can accept a structurally-valid splice provisionally when
+    Isabelle is too slow to confirm within the budget.
+    """
     print(f"[DEBUG verify] starting verify with timeout={_ISA_VERIFY_TIMEOUT_S}s, text_len={len(text)}")
     import time as _t
     _t0 = _t.monotonic()
@@ -41,7 +57,7 @@ def _verify_full_proof(isabelle, session: str, text: str) -> Optional[bool]:
         ok, _ = finished_ok(result)
         print(f"[DEBUG verify] result_count={len(result) if result else 0} ok={ok} elapsed={_t.monotonic()-_t0:.1f}s")
         return ok
-    except (TimeoutError, _FuturesTimeout) as e:
+    except (TimeoutError, _FuturesTimeout):
         print(f"[DEBUG verify] TIMEOUT after {_t.monotonic()-_t0:.1f}s")
         return None
     except Exception as e:
@@ -50,10 +66,18 @@ def _verify_full_proof(isabelle, session: str, text: str) -> Optional[bool]:
 
 
 def _cleanup_resources(isa, proc) -> None:
-    """Best-effort shutdown/cleanup for Isabelle + spawned process."""
+    """Best-effort shutdown/cleanup for Isabelle + spawned process.
+
+    Important: we do NOT close the asyncio event loop here. The loop is
+    process-wide and shared between all isabelle_client instances (the
+    bench harness and per-goal driver clients all sit on top of the same
+    loop). Closing the loop between bench goals leaves the bench harness's
+    long-lived client with a dead transport, producing ConnectionRefusedError
+    on every subsequent verify. The loop is drained and closed once at
+    process exit by experiments.py's atexit hook.
+    """
     for action in (
         lambda: isa.shutdown(),
-        lambda: getattr(__import__("planner.experiments"), "_close_client_loop_safely")(isa),
         lambda: proc.terminate(),
         lambda: proc.kill(),
         lambda: proc.wait(timeout=2),

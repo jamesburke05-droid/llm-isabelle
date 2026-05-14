@@ -134,13 +134,22 @@ def _read_goals_file(path: Path) -> List[str]:
 
 # ---------- Logging helpers ----------
 def _append_proof_log(log_path: Path, rec: Dict[str, Any]) -> None:
-    """Append a single JSON record to the planner proof log; never crash the run."""
+    """Append a single JSON record to the planner proof log; never crash the run.
+
+    Failures are reported to stderr (one line, identifying the exception type)
+    so we don't end up with silently-empty log files. The most common cause is
+    a record containing a non-JSON-serialisable value (e.g. a Pydantic TaskOK
+    object slipping into context); using default=str makes the dump robust.
+    """
     try:
         log_path.parent.mkdir(parents=True, exist_ok=True)
         with log_path.open("a", encoding="utf-8") as f:
-            f.write(json.dumps(rec, ensure_ascii=False) + "\n")
-    except Exception:
-        pass
+            f.write(json.dumps(rec, ensure_ascii=False, default=str) + "\n")
+    except Exception as e:
+        try:
+            print(f"[experiments] _append_proof_log failed: {type(e).__name__}: {e}", file=sys.stderr)
+        except Exception:
+            pass
 
 # ---------- Optional Isabelle verification ----------
 
@@ -184,18 +193,26 @@ def _session_start_with_fallback(client):
     """
     Try the preferred session; on FAILED fall back to HOL.
     Returns (session_id, used_session_name).
+
+    Newer isabelle_client returns a list of Pydantic response objects from
+    session_start(); we unwrap to the plain session-id string using the same
+    helper the planner driver uses, otherwise downstream calls (which JSON-encode
+    the session id) fail with `Object of type TaskOK is not JSON serializable`.
     """
+    from planner.driver import _extract_session_id
     wanted = _pick_session_name()
     try:
-        sid = client.session_start(session=wanted)
+        raw = client.session_start(session=wanted)
+        sid = _extract_session_id(raw)
         return sid, wanted
     except Exception as e:
         msg = str(e)
         # "FAILED" is what isabelle_client raises when the image isn't available.
         if "FAILED" in msg and wanted != "HOL":
             try:
-                sid = client.session_start(session="HOL")
-                print(f"[experiments] session '{wanted}' unavailable → falling back to 'HOL'")
+                raw = client.session_start(session="HOL")
+                sid = _extract_session_id(raw)
+                print(f"[experiments] session '{wanted}' unavailable -> falling back to 'HOL'")
                 return sid, "HOL"
             except Exception:
                 pass
@@ -215,73 +232,27 @@ def _responses_to_text(resps) -> str:
 
 def _verify_full_isar(isabelle, session_id: str, isar_text: str) -> Tuple[bool, str]:
     """
-    Compile a full Isar theory and return (ok, brief_diag).
-    This is a completely new implementation that properly parses Isabelle's JSON responses
-    to avoid the false positives of previous versions.
+    Verify a full Isar text and return (ok, brief_diag).
+
+    Uses the planner's build_theory + run_theory directly (rather than wrapping
+    _verify_full_proof) so transport errors like ConnectionRefusedError surface
+    as their actual message, allowing _verify_with_auto_restart to detect them
+    and spin up a fresh server. The earlier wrapper version collapsed all
+    exceptions into "verify_failed", which defeated the auto-restart logic.
     """
     try:
-        # Step 1: Prepare and run the theory, assuming isar_text is a complete file.
-        theory_lines = _normalize_isar_for_verify(isar_text).splitlines()
-        if not theory_lines:
-            return False, "Empty proof provided."
-            
-        thy = build_theory(theory_lines, add_print_state=False, end_with=None)
+        normalized = _normalize_isar_for_verify(isar_text)
+        thy = build_theory(normalized.splitlines(), add_print_state=False, end_with=None)
         resps = run_theory(isabelle, session_id, thy)
-
-        # Step 2: Intelligently parse responses instead of naive string matching.
-        # We look for the final summary message from Isabelle.
-        final_summary = None
-        all_errors = []
-        for r in reversed(resps or []):
-            body = getattr(r, "response_body", None)
-            if not isinstance(body, (str, bytes)):
-                continue
-            
-            text_body = body.decode(errors="replace") if isinstance(body, bytes) else body
-            try:
-                # A summary will be a JSON object with "ok" and "errors" keys.
-                data = json.loads(text_body)
-                if isinstance(data, dict):
-                    if "ok" in data and "errors" in data:
-                        final_summary = data
-                        break # We found the main summary.
-                    # Also collect individual error messages.
-                    if data.get("kind") == "error" and "message" in data:
-                        all_errors.append(data["message"])
-
-            except json.JSONDecodeError:
-                continue # This response was not a valid JSON object.
-
-        # Step 3: Make a final decision based on the parsed summary.
-        if final_summary:
-            is_ok = final_summary.get("ok", False)
-            errors_list = final_summary.get("errors", [])
-            if is_ok and not errors_list:
-                return True, ""  # Definitive success.
-            else:
-                # Definitive failure. Format the error message.
-                error_msgs = [e.get("message", "Unknown error") for e in errors_list]
-                diag = "Isabelle reported failure:\n" + "\n".join(error_msgs)
-                return False, diag
-
-        # Step 4: Fallback if no JSON summary was found (e.g., older Isabelle version).
-        # Check for legacy error markers.
-        all_txt = _responses_to_text(resps)
-        if any(e in all_txt for e in ("*** Error:", "*** Outer syntax error", "*** Failed")):
-             return False, f"[Legacy error detected]\n{all_txt[-1000:]}"
-        
-        # If no errors were found, and we saw signs of completion, assume success.
-        if "100%" in all_txt or "theory processed" in all_txt:
+        ok, diag = finished_ok(resps)
+        if ok:
             return True, ""
-
-        # If all else fails, we have to assume failure.
-        diag = "Verification inconclusive. No summary found."
-        if all_errors:
-            diag += "\nDetected errors:\n" + "\n".join(all_errors)
-        return False, diag
-
+        # finished_ok returned False with some diagnostic
+        return False, (diag if isinstance(diag, str) else "verify_failed")
     except Exception as e:
-        return False, f"verify_error: {type(e).__name__}: {e}"
+        # Surface the full exception class + message so _is_transport_error
+        # can identify ConnectionRefusedError / ConnectionResetError / etc.
+        return False, f"{type(e).__name__}: {e}"
 
 
 # Classify errors that are transport-level (server died/socket closed) vs. “real” Isabelle failures
@@ -537,8 +508,13 @@ def _bench_summarize(rows: List[BenchRow]) -> Dict[str, Any]:
 
 def _bench_write_csv(suite_name: str, cfg_name: str, rows: List[BenchRow]) -> Path:
     ts = time.strftime("%Y%m%d-%H%M%S")
-    safe_tag = cfg_name.replace(" ", "_")
-    out = RESULTS_DIR / f"{ts}-{suite_name}-{safe_tag}.csv"
+    # Windows reserves : \ / * ? " < > | in filenames; collapse to underscore.
+    # The colon in model tags like "qwen2.5-coder:14b" otherwise turns the
+    # remainder into an NTFS alternate data stream, producing a visible 0-byte
+    # file with all the data hidden behind the colon.
+    safe_tag = re.sub(r'[:\\/\*\?"<>\|]', "_", cfg_name).replace(" ", "_")
+    safe_suite = re.sub(r'[:\\/\*\?"<>\|]', "_", suite_name)
+    out = RESULTS_DIR / f"{ts}-{safe_suite}-{safe_tag}.csv"
     headers = ["goal", "success", "elapsed_s", "mode", "model", "outline_chars", "fills", "failed_holes", "had_sorry", "verified_ok"]
     with out.open("w", newline="", encoding="utf-8") as f:
         w = csv.DictWriter(f, fieldnames=headers)

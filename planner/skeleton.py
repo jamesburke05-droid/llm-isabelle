@@ -80,13 +80,8 @@ def _ollama_generate_simple(
         },
         "stream": False,
     }
-    rresp = _SESSION.post(url, json=payload, timeout=timeout_s or OLLAMA_TIMEOUT_S)
-    # DEBUG
-    print(f"[OLLAMA-DEBUG] status={rresp.status_code} temp={payload['options']['temperature']} num_predict={payload['options']['num_predict']} prompt_len={len(prompt)}")
-    if rresp.status_code >= 400:
-        print(f"[OLLAMA-DEBUG] body={rresp.text[:1000]}")
-    rresp.raise_for_status()
-    return rresp.json().get("response", "").strip()
+    resp = _SESSION.post(url, json=payload, timeout=timeout_s or OLLAMA_TIMEOUT_S)
+    resp.raise_for_status()
     data = resp.json()
     return (data.get("response") or "").strip()
 
@@ -253,6 +248,29 @@ def _ensure_lemma_header(text: str, goal: str) -> str:
         return f'lemma "{goal}"\n{body}'
     return text
 
+def _strip_code_fences(text: str) -> str:
+    """Remove markdown code fences (```isabelle, ```isar, ```) the LLM sometimes
+    wraps around its output. Also remove a stray opening 'isabelle' word that
+    can be left over when only the closing fence is stripped.
+
+    LLMs especially love producing fenced blocks when the prompt mentions
+    multiple syntactic shapes, and the bench harness will treat a fenced
+    output as malformed Isar. Strip them defensively.
+    """
+    if not text:
+        return text
+    lines = text.splitlines()
+    out = []
+    for L in lines:
+        stripped = L.strip()
+        if stripped in ("```", "```isabelle", "```isar", "```hol", "```lean"):
+            continue
+        # also handle lines that are just the language tag after a stripped fence
+        if stripped.lower() in ("isabelle", "isar"):
+            continue
+        out.append(L)
+    return "\n".join(out)
+
 def _normalize_calculation_ellipsis(text: str) -> str:
     # Replace Unicode ellipsis and spaced PDF (. . .) with Isar token "..."
     text = text.replace("…", "...")
@@ -415,6 +433,12 @@ def _maybe_proof_dash(text: str) -> str:
     return text
 
 def _sanitize_outline(text: str, goal: str, *, force_outline: bool) -> str:
+    # Strip markdown code fences BEFORE anything else - the LLM sometimes
+    # wraps its output in ```isabelle ... ``` and downstream sanitizers
+    # cannot tell that's not Isar.
+    text = _strip_code_fences(text)
+    # Collapse duplicate consecutive lemma headers (LLM repeating itself)
+    text = re.sub(r'(?m)^(\s*lemma\s+"[^"]*"\s*)\n+\s*lemma\s+"[^"]*"\s*', r'\1', text)
     text = _ensure_lemma_header(text, goal)
     # Normalize ellipsis first (avoid Unicode / spaced form)
     text = _normalize_calculation_ellipsis(text)

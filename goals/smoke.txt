@@ -1,0 +1,10 @@
+True
+1 + 1 = (2::nat)
+length [1, 2, 3] = 3
+length (rev xs) = length xs
+rev (rev xs) = xs
+length (xs @ ys) = length xs + length ys
+rev (xs @ ys) = rev ys @ rev xs
+map f (xs @ ys) = map f xs @ map f ys
+sum_list (xs @ ys) = sum_list xs + sum_list ys
+filter P (xs @ ys) = filter P xs @ filter P ys

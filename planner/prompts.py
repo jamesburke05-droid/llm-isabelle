@@ -49,14 +49,8 @@ PROOF_CONTEXT (lemma header and all proven statements before the BLOCK - you can
 {proof_context}
 CONTEXT
 
-ISABELLE_ERRORS (the residual subgoal Isabelle was left with after the failed tactic):
+ISABELLE_ERRORS (learn from previous errors and avoid generating proofs that have similar errors):
 {errors}
-
-Use the residual subgoal above to decide which tactic could close it.
-- If the residual is an arithmetic equality (commutativity/associativity of +, *), use `by (simp add: add.assoc add.commute)` or `by (simp add: ac_simps)`. Use `by linarith` only as a last resort, since it requires the terms to be linear-arithmetic ground terms.
-- If the residual involves list operations, try `by (simp add: append_assoc rev_append map_append)` as appropriate.
-- If the residual is closed by congruence, use `by (rule arg_cong)`.
-Avoid repeating tactics that already failed.
 
 COUNTEREXAMPLE_HINTS (learn from counterexamples of previous goals and avoid generating goals based on the counterexamples):
 {ce_hints}
@@ -135,14 +129,8 @@ PROOF_CONTEXT (lemma header and all proven statements before the BLOCK - you can
 {proof_context}
 CONTEXT
 
-ISABELLE_ERRORS (the residual subgoal Isabelle was left with after the failed tactic):
+ISABELLE_ERRORS (learn from previous errors and avoid generating proofs that have similar errors):
 {errors}
-
-Use the residual subgoal above to decide which tactic could close it.
-- If the residual is an arithmetic equality (commutativity/associativity of +, *), use `by (simp add: add.assoc add.commute)` or `by (simp add: ac_simps)`. Use `by linarith` only as a last resort, since it requires the terms to be linear-arithmetic ground terms.
-- If the residual involves list operations, try `by (simp add: append_assoc rev_append map_append)` as appropriate.
-- If the residual is closed by congruence, use `by (rule arg_cong)`.
-Avoid repeating tactics that already failed.
 
 COUNTEREXAMPLE_HINTS (learn from counterexamples of previous goals and avoid generating goals based on the counterexamples):
 {ce_hints}
@@ -168,15 +156,15 @@ TASK
 Given a lemma statement, first figure out a proof plan in English INTERNALLY that aims to break the problem into smaller problems so you can divide and conquer. Do NOT reveal your plan. Output ONLY a CLEAN Isabelle/Isar proof outline that corresponds to your English proof plan and is verifiable in Isabelle/HOL. Leave nontrivial reasoning steps as `sorry`.
 
 HARD OUTPUT RULES
-- Output ONLY Isabelle/Isar (no prose, no code fences).
-- Begin at (or immediately after) the exact header:
-  lemma "{goal}"
-- Produce exactly ONE lemma..qed block.
+- Output ONLY Isabelle/Isar. Do NOT include ```isabelle, ```isar, ``` or any other markdown code fence anywhere.
+- Output EXACTLY ONE lemma..qed block (or a one-line `lemma "{goal}" by ...` for trivial goals). Do NOT repeat the lemma header twice.
+- Start your output with `lemma "{goal}"` and nothing before it (no backticks, no prose, no commentary).
 - Prefer structured proofs with named intermediate facts (e.g., f1, f2) that are then reused.
-- Use the right shell:
-  • Induction: `proof (induction <var>)` → branches `case …` with `show ?case …`.
-  • Exhaustive cases: `proof (cases <expr>)` or `proof (cases rule: <T>.exhaust)` → branches ending with `show ?thesis …`.
-  • Calculational: `proof -` with `have …`, `also`, `moreover`, `finally show ?thesis …`.
+- Choose the proof shape that fits the goal:
+  * If the goal is trivial (no free variables of an inductive type, e.g. `True`, `1 + 1 = 2`, `length [1,2,3] = 3`), output a one-line proof: `lemma "{goal}" by simp` (or `by auto`, `by arith` etc.). Do NOT use `proof (induction ...)`.
+  * If the goal has a free variable of an inductive type (lists, naturals, trees), use induction: `proof (induction <var>)` -> branches `case ...` with `show ?case ...`.
+  * Exhaustive cases: `proof (cases <expr>)` or `proof (cases rule: <T>.exhaust)` -> branches ending with `show ?thesis ...`.
+  * Calculational: `proof -` with `have ...`, `also`, `moreover`, `finally show ?thesis ...`.
 - When trivial, close with `by simp` / `by auto` / `by blast` / `by fastforce`, etc, but don't use . as a tactic. 
 - Do NOT invent constants or fact names; only use variables/tokens present in the goal or locally introduced facts.
 
@@ -242,4 +230,10 @@ proof -
   also have "... = D"  sorry
   finally show ?thesis  using f2  sorry
 qed
+
+lemma "True"
+  by simp
+
+lemma "1 + 1 = (2::nat)"
+  by simp
 """

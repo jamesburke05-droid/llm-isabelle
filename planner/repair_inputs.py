@@ -21,19 +21,25 @@ def _clamp_line_index(lines: List[str], idx: int) -> int:
     return max(0, min(idx, len(lines) - 1))
 
 def _run_theory_with_timeout(isabelle, session: str, thy: List[str], *, timeout_s: Optional[int]) -> List:
+    """Execute theory with a hard timeout. See note in planner/goals.py - the
+    context-manager form of ThreadPoolExecutor blocks on __exit__ until the
+    in-flight thread returns, defeating the timeout when Isabelle hangs."""
     if not timeout_s or timeout_s <= 0:
         return run_theory(isabelle, session, thy)
-    with ThreadPoolExecutor(max_workers=1) as ex:
-        fut = ex.submit(run_theory, isabelle, session, thy)
-        try:
-            return fut.result(timeout=timeout_s)
-        except _FuturesTimeout:
-            if hasattr(isabelle, "interrupt"):
-                try:
-                    isabelle.interrupt()
-                except Exception:
-                    pass
-            raise TimeoutError("isabelle_run_timeout")
+    ex = ThreadPoolExecutor(max_workers=1)
+    fut = ex.submit(run_theory, isabelle, session, thy)
+    try:
+        result = fut.result(timeout=timeout_s)
+        ex.shutdown(wait=False)
+        return result
+    except _FuturesTimeout:
+        if hasattr(isabelle, "interrupt"):
+            try:
+                isabelle.interrupt()
+            except Exception:
+                pass
+        ex.shutdown(wait=False, cancel_futures=True)
+        raise TimeoutError("isabelle_run_timeout")
 
 def _earliest_failure_anchor(isabelle, session: str, full_text: str, *, default_line_0: int) -> Tuple[int, str]:
     try:

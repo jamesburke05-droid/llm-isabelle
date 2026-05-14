@@ -526,8 +526,10 @@ def plan_and_fill(goal: str, model: Optional[str] = None, timeout: int = 100, *,
             except (TimeoutError, _FuturesTimeout, ValueError) as ex:
                 _restart_isabelle("verify_full_proof", ex)
 
+            print(f"[DEBUG topdown] entering top-down repair check, left_s={left_s():.0f}, repairs={repairs}")
             if repairs and left_s() > 6.0:
                 full, ok = _repair_failed_proof_topdown(isa, session, full, goal, model, left_s, max_repairs_per_hole, trace)
+                print(f"[DEBUG topdown] _repair_failed_proof_topdown returned ok={ok}")
                 if ok:
                     return PlanAndFillResult(True, full, [], [])
 
