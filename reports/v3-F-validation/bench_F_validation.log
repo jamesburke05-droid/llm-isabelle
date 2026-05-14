@@ -1,0 +1,1262 @@
+server "planner" = 127.0.0.1:64973 (password "21c62509-7c03-44be-a2af-cc9dcd405524")
+session_id: f5f677af-9026-4b4f-a351-49c483e1ec53 | session: HOL
+
+=== Planner suite: smoke (10 goals) ===
+[mode_auto__k1__t180__repairs_on__model_qwen2.5-coder:14b__verify] (run 1/1) [1/10] True
+[planner] ▶ goal: True
+[planner]   mode=auto k=1 timeout=180s repairs=True
+[fill] State block (length=40):
+proof (state)
+goal (1 subgoal):
+ 1. True
+
+▶ Goal: True
+Models: qwen2.5-coder:14b | Beam=3 | MaxDepth=6 | Timeout=32s
+Sledgehammer finishers: ['by satx', 'by presburger', 'by auto', 'by simp', 'by blast']
+Finishers (origin): [sledge:by satx, sledge:by presburger, sledge:by auto, sledge:by simp, sledge:by blast, llm:by fastforce, llm:by meson]
+  finish ✓ [sledge] by satx  (2250ms)
+✔ PROVED
+[DEBUG splice] sleeping 3s to let server settle...
+[DEBUG splice] fin='by satx' indent=18 text_len=143
+[DEBUG splice] new_text:
+lemma "True"
+proof -
+                  by satx
+    sorry
+  have f2: "..."  using f1  sorry
+    sorry
+  show ?thesis
+    using f2
+    sorry
+qed
+
+[end splice]
+[DEBUG verify] starting verify with timeout=30s, text_len=143
+[DEBUG verify] result_count=5 ok=False elapsed=2.2s
+[fill] Fill made no progress. Escalating to repair stage 1...
+[repair] State block (len=40):
+proof (state)
+goal (1 subgoal):
+ 1. True
+[repair] Trying have/show block repair…
+[repair] have-show-block (input) (len=33):
+  have f1: "..."  sorry
+    sorry
+[repair] proof_context (LLM input) (len=20):
+lemma "True"
+proof -
+[repair] errors (LLM input) (len=117):
+Unbound schematic variable: \<dots>
+Illegal application of proof command in "state" mode
+Undefined fact: "f2"\<^here>
+[repair] counterexamples (LLM input) (len=6):
+(none)
+[repair] prior_block_failures (LLM input) (len=31):
+have f1: "..."  sorry
+    sorry
+[repair] have-show-block (output) (len=25):
+  have f1: "True" by simp
+[DEBUG repair_block] patched proof:
+lemma "True"
+proof -
+  have f1: "True" by simp
+  have f2: "..."  using f1  sorry
+    sorry
+  show ?thesis
+    using f2
+    sorry
+qed
+[end patched]
+[DEBUG repair_block] verify after patch: ok=False, block_type=have-show, last_output_starts='  have f1: "True" by simp'
+[repair] prior_block_failures (LLM input) (len=59):
+have f1: "..."  sorry
+    sorry
+---
+have f1: "True" by simp
+[repair] Skipping duplicate block (fingerprint: have f1:...)
+[repair] prior_block_failures (LLM input) (len=59):
+have f1: "..."  sorry
+    sorry
+---
+have f1: "True" by simp
+[repair] Skipping duplicate block (fingerprint: have f1:...)
+[DEBUG verify] starting verify with timeout=30s, text_len=132
+[DEBUG verify] result_count=4 ok=False elapsed=2.1s
+[repair] Stage 1 unverified after 1 attempt(s); ESCALATING to Stage 2 (sub-proof repair)
+[fill] Skipping fill for hole @718d8273df7f22d8; running repairs at stage 2
+[repair] State block (len=40):
+proof (state)
+goal (1 subgoal):
+ 1. True
+[repair] Trying subproof repair…
+[repair] subproof-block (input) (len=127):
+proof -
+  have f1: "..."  sorry
+    sorry
+  have f2: "..."  using f1  sorry
+    sorry
+  show ?thesis
+    using f2
+    sorry
+qed
+[repair] proof_context (LLM input) (len=12):
+lemma "True"
+[repair] errors (LLM input) (len=117):
+Unbound schematic variable: \<dots>
+Illegal application of proof command in "state" mode
+Undefined fact: "f2"\<^here>
+[repair] counterexamples (LLM input) (len=6):
+(none)
+[repair] prior_block_failures (LLM input) (len=127):
+proof -
+  have f1: "..."  sorry
+    sorry
+  have f2: "..."  using f1  sorry
+    sorry
+  show ?thesis
+    using f2
+    sorry
+qed
+[repair] subproof-block (output) (len=112):
+proof -
+  have f1: "True" by simp
+  have f2: "True" using f1 by simp
+  show ?thesis
+    using f2
+    by simp
+qed
+[DEBUG repair_block] patched proof:
+lemma "True"
+proof -
+  have f1: "True" by simp
+  have f2: "True" using f1 by simp
+  show ?thesis
+    using f2
+    by simp
+qed
+[end patched]
+[DEBUG repair_block] verify after patch: ok=True, block_type=subproof, last_output_starts='proof -\n  have f1: "True" by simp\n  have f2: "True" using f1'
+[DEBUG verify] starting verify with timeout=30s, text_len=125
+[DEBUG verify] result_count=5 ok=True elapsed=2.2s
+[repair] Stage 2 repair verified! Clearing progress and moving on.
+[DEBUG final] sorry_in_full=False success_flag=True
+[DEBUG verify] starting verify with timeout=30s, text_len=125
+[DEBUG verify] result_count=3 ok=True elapsed=2.0s
+[DEBUG final] _verify_full_proof returned True
+[planner]   outline chars=125 fills=0 failed_holes=0
+Current proof outline:
+lemma "True"
+proof -
+  have f1: "True" by simp
+  have f2: "True" using f1 by simp
+  show ?thesis
+    using f2
+    by simp
+qed
+
+[planner]   verifying with Isabelle…
+session_id: c5d61086-81f8-4dd0-999f-3a4ccdd2a878 | session: HOL
+[planner]   verify=ok
+[planner]   done in 212.89s | success=True had_sorry=False verified_ok=True
+[mode_auto__k1__t180__repairs_on__model_qwen2.5-coder:14b__verify] (run 1/1) [2/10] 1 + 1 = (2::nat)
+[planner] ▶ goal: 1 + 1 = (2::nat)
+[planner]   mode=auto k=1 timeout=180s repairs=True
+[fill] State block (length=0):
+  (empty or whitespace only)
+
+▶ Goal: 1 + 1 = (2::nat)
+Models: qwen2.5-coder:14b | Beam=3 | MaxDepth=6 | Timeout=174s
+Sledgehammer finishers: ['by auto', 'by presburger', 'by simp', 'by linarith', 'by force']
+Finishers (origin): [sledge:by auto, sledge:by presburger, sledge:by simp, sledge:by linarith, sledge:by force]
+  finish ✓ [sledge] by auto  (578ms)
+✔ PROVED
+[DEBUG splice] sleeping 3s to let server settle...
+[DEBUG splice] fin='by auto' indent=2 text_len=55
+[DEBUG splice] new_text:
+lemma "1 + 1 = (2::nat)"
+  by simp
+proof
+  by auto
+qed
+
+[end splice]
+[DEBUG verify] starting verify with timeout=30s, text_len=55
+[DEBUG verify] result_count=4 ok=False elapsed=2.2s
+[fill] Fill made no progress. Escalating to repair stage 1...
+[repair] Trying subproof repair…
+[repair] subproof-block (input) (len=17):
+proof
+  sorry
+qed
+[repair] proof_context (LLM input) (len=34):
+lemma "1 + 1 = (2::nat)"
+  by simp
+[repair] errors (LLM input) (len=119):
+Bad context for command "proof"\<^here> -- using reset state
+Bad context for command "qed"\<^here> -- using reset state
+[repair] counterexamples (LLM input) (len=6):
+(none)
+[repair] prior_block_failures (LLM input) (len=17):
+proof
+  sorry
+qed
+[repair] subproof-block (output) (len=32):
+proof
+  show ?thesis by simp
+qed
+[DEBUG repair_block] patched proof:
+lemma "1 + 1 = (2::nat)"
+  by simp
+proof
+  show ?thesis by simp
+qed
+[end patched]
+[DEBUG repair_block] verify after patch: ok=False, block_type=subproof, last_output_starts='proof\n  show ?thesis by simp\nqed'
+[repair] prior_block_failures (LLM input) (len=54):
+proof
+  sorry
+qed
+---
+proof
+  show ?thesis by simp
+qed
+[repair] subproof-block (output) (len=94):
+proof
+  have f1: "1 + 1 = Suc 1" by simp
+  show ?thesis using f1 unfolding Suc_def by simp
+qed
+[DEBUG repair_block] patched proof:
+lemma "1 + 1 = (2::nat)"
+  by simp
+proof
+  have f1: "1 + 1 = Suc 1" by simp
+  show ?thesis using f1 unfolding Suc_def by simp
+qed
+[end patched]
+[DEBUG repair_block] verify after patch: ok=False, block_type=subproof, last_output_starts='proof\n  have f1: "1 + 1 = Suc 1" by simp\n  show ?thesis usin'
+[DEBUG verify] starting verify with timeout=30s, text_len=129
+[DEBUG verify] result_count=3 ok=False elapsed=2.1s
+[repair] Stage 1 unverified after 1 attempt(s); ESCALATING to Stage 2 (sub-proof repair)
+[fill] Skipping fill for hole @bbb0a3b38ae61dca; running repairs at stage 2
+[repair] Trying subproof repair…
+[repair] subproof-block (input) (len=17):
+proof
+  sorry
+qed
+[repair] proof_context (LLM input) (len=34):
+lemma "1 + 1 = (2::nat)"
+  by simp
+[repair] errors (LLM input) (len=119):
+Bad context for command "proof"\<^here> -- using reset state
+Bad context for command "qed"\<^here> -- using reset state
+[repair] counterexamples (LLM input) (len=6):
+(none)
+[repair] prior_block_failures (LLM input) (len=17):
+proof
+  sorry
+qed
+[repair] subproof-block (output) (len=32):
+proof
+  show ?thesis by simp
+qed
+[DEBUG repair_block] patched proof:
+lemma "1 + 1 = (2::nat)"
+  by simp
+proof
+  show ?thesis by simp
+qed
+[end patched]
+[DEBUG repair_block] verify after patch: ok=False, block_type=subproof, last_output_starts='proof\n  show ?thesis by simp\nqed'
+[repair] prior_block_failures (LLM input) (len=54):
+proof
+  sorry
+qed
+---
+proof
+  show ?thesis by simp
+qed
+[repair] Skipping duplicate block (fingerprint: proof sh...)
+[repair] prior_block_failures (LLM input) (len=54):
+proof
+  sorry
+qed
+---
+proof
+  show ?thesis by simp
+qed
+[repair] Skipping duplicate block (fingerprint: proof sh...)
+[DEBUG verify] starting verify with timeout=30s, text_len=67
+[DEBUG verify] result_count=4 ok=False elapsed=2.1s
+[repair] Stage 2 changed but unverified (attempt 1/2). Opening sorries...
+[repair] Could not open sorries; escalating stage...
+[DEBUG final] sorry_in_full=False success_flag=True
+[DEBUG verify] starting verify with timeout=30s, text_len=67
+[DEBUG verify] result_count=3 ok=False elapsed=2.0s
+[DEBUG final] _verify_full_proof returned False
+[DEBUG final] returning failure, final text length=67
+[planner]   outline chars=67 fills=0 failed_holes=0
+Current proof outline:
+lemma "1 + 1 = (2::nat)"
+  by simp
+proof
+  show ?thesis by simp
+qed
+
+[planner]   verifying with Isabelle…
+session_id: 51830794-d7e8-4012-bbb1-6c5bc9457205 | session: HOL
+[planner]   verify=fail
+[planner]   done in 170.24s | success=False had_sorry=False verified_ok=False
+[mode_auto__k1__t180__repairs_on__model_qwen2.5-coder:14b__verify] (run 1/1) [3/10] length [1, 2, 3] = 3
+[planner] ▶ goal: length [1, 2, 3] = 3
+[planner]   mode=auto k=1 timeout=180s repairs=True
+[fill] State block (length=0):
+  (empty or whitespace only)
+
+▶ Goal: length [1, 2, 3] = 3
+Models: qwen2.5-coder:14b | Beam=3 | MaxDepth=6 | Timeout=175s
+Sledgehammer finishers: ['by auto', 'by simp', 'by force', 'by fastforce', "by auto found a proof...', pos=Position(line=5, offset=66, end_offset=78, file='/cygdrive/c/Users/JAMESB~1/AppData/Local/Temp/tmp_929y2kt/Scratch.thy', id=None"]
+Finishers (origin): [sledge:by auto, sledge:by simp, sledge:by force, sledge:by fastforce, sledge:by auto found a proof...', pos=Position(line=5, offset=66, end_offset=78, file='/cygdrive/c/Users/JAMESB~1/AppData/Local/Temp/tmp_929y2kt/Scratch.thy', id=None, llm:by clarsimp, llm:by blast, llm:by arith, llm:by presburger, llm:by meson]
+  finish ✓ [sledge] by auto  (1094ms)
+✔ PROVED
+[DEBUG splice] sleeping 3s to let server settle...
+[DEBUG splice] fin='by auto' indent=2 text_len=57
+[DEBUG splice] new_text:
+lemma "length [1, 2, 3] = 3"
+by simp
+proof
+  by auto
+qed
+
+[end splice]
+[DEBUG verify] starting verify with timeout=30s, text_len=57
+[DEBUG verify] result_count=4 ok=False elapsed=2.2s
+[fill] Fill made no progress. Escalating to repair stage 1...
+[repair] Trying subproof repair…
+[repair] subproof-block (input) (len=17):
+proof
+  sorry
+qed
+[repair] proof_context (LLM input) (len=36):
+lemma "length [1, 2, 3] = 3"
+by simp
+[repair] errors (LLM input) (len=119):
+Bad context for command "proof"\<^here> -- using reset state
+Bad context for command "qed"\<^here> -- using reset state
+[repair] counterexamples (LLM input) (len=6):
+(none)
+[repair] prior_block_failures (LLM input) (len=17):
+proof
+  sorry
+qed
+[repair] subproof-block (output) (len=32):
+proof
+  show ?thesis by simp
+qed
+[DEBUG repair_block] patched proof:
+lemma "length [1, 2, 3] = 3"
+by simp
+proof
+  show ?thesis by simp
+qed
+[end patched]
+[DEBUG repair_block] verify after patch: ok=False, block_type=subproof, last_output_starts='proof\n  show ?thesis by simp\nqed'
+[repair] prior_block_failures (LLM input) (len=54):
+proof
+  sorry
+qed
+---
+proof
+  show ?thesis by simp
+qed
+[repair] subproof-block (output) (len=150):
+proof
+  have "length [1, 2, 3] = length (1 # (2 # (3 # [])))" by simp
+  also have "... = Suc (Suc (Suc 0))" by simp
+  finally show ?thesis by simp
+qed
+[DEBUG repair_block] patched proof:
+lemma "length [1, 2, 3] = 3"
+by simp
+proof
+  have "length [1, 2, 3] = length (1 # (2 # (3 # [])))" by simp
+  also have "... = Suc (Suc (Suc 0))" by simp
+  finally show ?thesis by simp
+qed
+[end patched]
+[DEBUG repair_block] verify after patch: ok=False, block_type=subproof, last_output_starts='proof\n  have "length [1, 2, 3] = length (1 # (2 # (3 # [])))'
+[DEBUG verify] starting verify with timeout=30s, text_len=187
+[DEBUG verify] result_count=4 ok=False elapsed=2.1s
+[repair] Stage 1 unverified after 1 attempt(s); ESCALATING to Stage 2 (sub-proof repair)
+[fill] Skipping fill for hole @7f7313bfbcdb41e7; running repairs at stage 2
+[repair] Trying subproof repair…
+[repair] subproof-block (input) (len=17):
+proof
+  sorry
+qed
+[repair] proof_context (LLM input) (len=36):
+lemma "length [1, 2, 3] = 3"
+by simp
+[repair] errors (LLM input) (len=119):
+Bad context for command "proof"\<^here> -- using reset state
+Bad context for command "qed"\<^here> -- using reset state
+[repair] counterexamples (LLM input) (len=6):
+(none)
+[repair] prior_block_failures (LLM input) (len=17):
+proof
+  sorry
+qed
+[repair] subproof-block (output) (len=158):
+proof
+  have "length [1, 2, 3] = length (1 # 2 # 3 # [])"
+    by simp
+  also have "... = Suc (Suc (Suc 0))"
+    by simp
+  finally show ?thesis
+    by simp
+qed
+[DEBUG repair_block] patched proof:
+lemma "length [1, 2, 3] = 3"
+by simp
+proof
+  have "length [1, 2, 3] = length (1 # 2 # 3 # [])"
+    by simp
+  also have "... = Suc (Suc (Suc 0))"
+    by simp
+  finally show ?thesis
+    by simp
+qed
+[end patched]
+[DEBUG repair_block] verify after patch: ok=False, block_type=subproof, last_output_starts='proof\n  have "length [1, 2, 3] = length (1 # 2 # 3 # [])"\n  '
+[repair] prior_block_failures (LLM input) (len=180):
+proof
+  sorry
+qed
+---
+proof
+  have "length [1, 2, 3] = length (1 # 2 # 3 # [])"
+    by simp
+  also have "... = Suc (Suc (Suc 0))"
+    by simp
+  finally show ?thesis
+    by simp
+qed
+[repair] Skipping duplicate block (fingerprint: proof ha...)
+[DEBUG verify] starting verify with timeout=30s, text_len=195
+[DEBUG verify] result_count=4 ok=False elapsed=2.1s
+[repair] Stage 2 changed but unverified (attempt 1/2). Opening sorries...
+[repair] Could not open sorries; escalating stage...
+[DEBUG final] sorry_in_full=False success_flag=True
+[DEBUG verify] starting verify with timeout=30s, text_len=195
+[DEBUG verify] result_count=5 ok=False elapsed=2.2s
+[DEBUG final] _verify_full_proof returned False
+[DEBUG final] returning failure, final text length=195
+[planner]   outline chars=195 fills=0 failed_holes=0
+Current proof outline:
+lemma "length [1, 2, 3] = 3"
+by simp
+proof
+  have "length [1, 2, 3] = length (1 # 2 # 3 # [])"
+    by simp
+  also have "... = Suc (Suc (Suc 0))"
+    by simp
+  finally show ?thesis
+    by simp
+qed
+
+[planner]   verifying with Isabelle…
+session_id: b32ad2e4-12c4-4cd6-b753-a4f72f74fd7b | session: HOL
+[planner]   verify=fail
+[planner]   done in 188.55s | success=False had_sorry=False verified_ok=False
+[mode_auto__k1__t180__repairs_on__model_qwen2.5-coder:14b__verify] (run 1/1) [4/10] length (rev xs) = length xs
+[planner] ▶ goal: length (rev xs) = length xs
+[planner]   mode=auto k=1 timeout=180s repairs=True
+[DEBUG verify] starting verify with timeout=30s, text_len=334
+[DEBUG verify] result_count=5 ok=True elapsed=2.4s
+[planner]   outline chars=334 fills=0 failed_holes=0
+Current proof outline:
+lemma "length (rev xs) = length xs"
+proof (induction xs)
+  case Nil
+  show ?case by simp
+next
+  case (Cons x xs)
+  have f1: "length (rev xs) = length xs" by (rule Cons.IH)
+  have f2: "rev (x # xs) = rev xs @ [x]" by simp
+  have f3: "length (rev xs @ [x]) = length (rev xs) + 1" by simp
+  show ?case
+    using f1 f2 f3
+    by simp
+qed
+
+[planner]   verifying with Isabelle…
+session_id: 34820f29-1bb6-4312-90b8-d894873b6ba4 | session: HOL
+[planner]   verify=ok
+[planner]   done in 107.33s | success=True had_sorry=False verified_ok=True
+[mode_auto__k1__t180__repairs_on__model_qwen2.5-coder:14b__verify] (run 1/1) [5/10] rev (rev xs) = xs
+[planner] ▶ goal: rev (rev xs) = xs
+[planner]   mode=auto k=1 timeout=180s repairs=True
+[fill] State block (length=89):
+proof (prove)
+goal (1 subgoal):
+ 1. rev (rev xs) = xs \<Longrightarrow> rev (rev xs) = xs
+
+▶ Goal: rev (rev xs) = xs
+Models: qwen2.5-coder:14b | Beam=3 | MaxDepth=6 | Timeout=80s
+Sledgehammer finishers: ['by simp', 'by auto', 'by fastforce', 'by force', 'by (metis rev_rev_ident)']
+Finishers (origin): [sledge:by simp, sledge:by auto, sledge:by fastforce, sledge:by force, sledge:by (metis rev_rev_ident), llm:by blast, llm:by presburger, llm:by (simp add: rev_rev_ident), llm:by (rule_tac x="xs" in exI, simp)]
+  finish ✓ [sledge] by simp  (2234ms)
+✔ PROVED
+[DEBUG splice] sleeping 3s to let server settle...
+[DEBUG splice] fin='by simp' indent=4 text_len=342
+[DEBUG splice] new_text:
+lemma "rev (rev xs) = xs"
+proof (induction xs)
+  case Nil
+  show ?case
+    by simp
+next
+  case (Cons x xs)
+  have f1: "rev (rev xs) = xs"
+    using Cons.IH
+    by simp
+  have f2: "rev (x # rev xs) = rev (rev xs) @ [x]"
+    by simp
+  have f3: "rev (rev xs) @ [x] = xs @ [x]"
+    using f1
+    sorry
+  show ?case
+    using f2 f3
+    by simp
+qed
+
+[end splice]
+[DEBUG verify] starting verify with timeout=30s, text_len=342
+[DEBUG verify] result_count=4 ok=True elapsed=2.3s
+[fill] State block (length=101):
+proof (prove)
+goal (1 subgoal):
+ 1. rev (rev xs) = xs \<Longrightarrow> rev (rev xs) @ [x] = xs @ [x]
+
+▶ Goal: rev (rev xs) = xs
+Models: qwen2.5-coder:14b | Beam=3 | MaxDepth=6 | Timeout=142s
+Sledgehammer finishers: ['by simp', 'by auto', 'by fastforce', 'by force', 'by (metis rev_rev_ident)']
+Finishers (origin): [sledge:by simp, sledge:by auto, sledge:by fastforce, sledge:by force, sledge:by (metis rev_rev_ident), llm:by (simp add: append_eq_append_conv), llm:by (simp add: rev_rev_ident), llm:by (simp add: append_assoc), llm:by (rule_tac x=x in rev_rev_ident), llm:by (induction xs, simp_all), llm:by (cases xs, simp_all)]
+  finish ✓ [sledge] by simp  (2219ms)
+✔ PROVED
+[DEBUG splice] sleeping 3s to let server settle...
+[DEBUG splice] fin='by simp' indent=4 text_len=344
+[DEBUG splice] new_text:
+lemma "rev (rev xs) = xs"
+proof (induction xs)
+  case Nil
+  show ?case
+    by simp
+next
+  case (Cons x xs)
+  have f1: "rev (rev xs) = xs"
+    using Cons.IH
+    by simp
+  have f2: "rev (x # rev xs) = rev (rev xs) @ [x]"
+    by simp
+  have f3: "rev (rev xs) @ [x] = xs @ [x]"
+    using f1
+    by simp
+  show ?case
+    using f2 f3
+    by simp
+qed
+
+[end splice]
+[DEBUG verify] starting verify with timeout=30s, text_len=344
+[DEBUG verify] result_count=4 ok=True elapsed=2.2s
+[DEBUG final] sorry_in_full=False success_flag=True
+[DEBUG verify] starting verify with timeout=30s, text_len=344
+[DEBUG verify] result_count=3 ok=True elapsed=2.0s
+[DEBUG final] _verify_full_proof returned True
+[planner]   outline chars=344 fills=2 failed_holes=0
+Current proof outline:
+lemma "rev (rev xs) = xs"
+proof (induction xs)
+  case Nil
+  show ?case
+    by simp
+next
+  case (Cons x xs)
+  have f1: "rev (rev xs) = xs"
+    using Cons.IH
+    by simp
+  have f2: "rev (x # rev xs) = rev (rev xs) @ [x]"
+    by simp
+  have f3: "rev (rev xs) @ [x] = xs @ [x]"
+    using f1
+    by simp
+  show ?case
+    using f2 f3
+    by simp
+qed
+
+[planner]   verifying with Isabelle…
+session_id: a9d2b5e0-e0bc-4196-a87d-90cf86b85254 | session: HOL
+[planner]   verify=ok
+[planner]   done in 142.61s | success=True had_sorry=False verified_ok=True
+[mode_auto__k1__t180__repairs_on__model_qwen2.5-coder:14b__verify] (run 1/1) [6/10] length (xs @ ys) = length xs + length ys
+[planner] ▶ goal: length (xs @ ys) = length xs + length ys
+[planner]   mode=auto k=1 timeout=180s repairs=True
+[fill] State block (length=139):
+proof (prove)
+goal (1 subgoal):
+ 1. length (xs @ ys) = length xs + length ys \<Longrightarrow>
+    length (xs @ ys) = length xs + length ys
+
+▶ Goal: length (xs @ ys) = length xs + length ys
+Models: qwen2.5-coder:14b | Beam=3 | MaxDepth=6 | Timeout=151s
+Sledgehammer finishers: ['by fastforce', 'by force', 'by auto', 'by simp', 'by (metis length_append)']
+Finishers (origin): [sledge:by fastforce, sledge:by force, sledge:by auto, sledge:by simp, sledge:by (metis length_append), llm:by (simp add: append_assoc), llm:by (simp add: length_append), llm:by (metis append_assoc)]
+  finish ✓ [sledge] by fastforce  (2266ms)
+✔ PROVED
+[DEBUG splice] sleeping 3s to let server settle...
+[DEBUG splice] fin='by fastforce' indent=4 text_len=337
+[DEBUG splice] new_text:
+lemma "length (xs @ ys) = length xs + length ys"
+proof (induction xs)
+  case Nil
+  show ?case
+    by simp
+next
+  case (Cons x xs)
+  have f1: "length ((x # xs) @ ys) = Suc (length (xs @ ys))"
+    by simp
+  have f2: "length (xs @ ys) = length xs + length ys"
+    using Cons.IH
+    by fastforce
+  show ?case
+    using f1 f2
+    by simp
+qed
+
+[end splice]
+[DEBUG verify] starting verify with timeout=30s, text_len=337
+[DEBUG verify] result_count=4 ok=True elapsed=2.2s
+[DEBUG final] sorry_in_full=False success_flag=True
+[DEBUG verify] starting verify with timeout=30s, text_len=337
+[DEBUG verify] result_count=5 ok=True elapsed=2.1s
+[DEBUG final] _verify_full_proof returned True
+[planner]   outline chars=337 fills=1 failed_holes=0
+Current proof outline:
+lemma "length (xs @ ys) = length xs + length ys"
+proof (induction xs)
+  case Nil
+  show ?case
+    by simp
+next
+  case (Cons x xs)
+  have f1: "length ((x # xs) @ ys) = Suc (length (xs @ ys))"
+    by simp
+  have f2: "length (xs @ ys) = length xs + length ys"
+    using Cons.IH
+    by fastforce
+  show ?case
+    using f1 f2
+    by simp
+qed
+
+[planner]   verifying with Isabelle…
+session_id: 39f3ddb8-c76a-4dff-b6d1-39989d464549 | session: HOL
+[planner]   verify=ok
+[planner]   done in 111.26s | success=True had_sorry=False verified_ok=True
+[mode_auto__k1__t180__repairs_on__model_qwen2.5-coder:14b__verify] (run 1/1) [7/10] rev (xs @ ys) = rev ys @ rev xs
+[planner] ▶ goal: rev (xs @ ys) = rev ys @ rev xs
+[planner]   mode=auto k=1 timeout=180s repairs=True
+[fill] State block (length=117):
+proof (prove)
+goal (1 subgoal):
+ 1. rev (xs @ ys) = rev ys @ rev xs \<Longrightarrow> rev (ys @ xs) = rev xs @ rev ys
+
+▶ Goal: rev (xs @ ys) = rev ys @ rev xs
+Models: qwen2.5-coder:14b | Beam=3 | MaxDepth=6 | Timeout=81s
+Sledgehammer finishers: ['by simp', 'by auto', 'by fastforce', 'by force', "by auto found a proof...', pos=Position(line=5, offset=77, end_offset=89, file='/cygdrive/c/Users/JAMESB~1/AppData/Local/Temp/tmpui3n3ti5/Scratch.thy', id=None"]
+Finishers (origin): [sledge:by simp, sledge:by auto, sledge:by fastforce, sledge:by force, sledge:by auto found a proof...', pos=Position(line=5, offset=77, end_offset=89, file='/cygdrive/c/Users/JAMESB~1/AppData/Local/Temp/tmpui3n3ti5/Scratch.thy', id=None, llm:by blast, llm:by (simp add: rev_rev_ident), llm:by (simp add: append_assoc), llm:by meson, llm:by (rule_tac x=ys in exI, simp)]
+  finish ✓ [sledge] by simp  (2235ms)
+✔ PROVED
+[DEBUG splice] sleeping 3s to let server settle...
+[DEBUG splice] fin='by simp' indent=4 text_len=320
+[DEBUG splice] new_text:
+lemma "rev (xs @ ys) = rev ys @ rev xs"
+proof (induction xs)
+  case Nil
+  show ?case
+    by simp
+next
+  case (Cons x xs)
+  have f1: "rev (x # xs @ ys) = rev (xs @ ys) @ [x]"
+    by simp
+  have f2: "rev (ys @ xs) = rev xs @ rev ys"
+    using Cons.IH
+    by simp
+  show ?case
+    sorry
+    unfolding f1 f2
+    by simp
+qed
+
+[end splice]
+[DEBUG verify] starting verify with timeout=30s, text_len=320
+[DEBUG verify] result_count=4 ok=False elapsed=2.2s
+[fill] Fill made no progress. Escalating to repair stage 1...
+[repair] State block (len=114):
+proof (prove)
+using this:
+  rev (xs @ ys) = rev ys @ rev xs
+
+goal (1 subgoal):
+ 1. rev (ys @ xs) = rev xs @ rev ys
+[repair] Trying have/show block repair…
+[repair] have-show-block (input) (len=72):
+  have f2: "rev (ys @ xs) = rev xs @ rev ys"
+    using Cons.IH
+    sorry
+[repair] proof_context (LLM input) (len=185):
+lemma "rev (xs @ ys) = rev ys @ rev xs"
+proof (induction xs)
+  case Nil
+  show ?case
+    by simp
+next
+  case (Cons x xs)
+  have f1: "rev (x # xs @ ys) = rev (xs @ ys) @ [x]"
+    by simp
+[repair] errors (LLM input) (len=52):
+Illegal application of proof command in "state" mode
+[repair] counterexamples (LLM input) (len=6):
+(none)
+[repair] prior_block_failures (LLM input) (len=70):
+have f2: "rev (ys @ xs) = rev xs @ rev ys"
+    using Cons.IH
+    sorry
+[repair] have-show-block (output) (len=56):
+  have f2: "rev (ys @ xs) = rev xs @ rev ys"
+    by simp
+[DEBUG repair_block] patched proof:
+lemma "rev (xs @ ys) = rev ys @ rev xs"
+proof (induction xs)
+  case Nil
+  show ?case
+    by simp
+next
+  case (Cons x xs)
+  have f1: "rev (x # xs @ ys) = rev (xs @ ys) @ [x]"
+    by simp
+  have f2: "rev (ys @ xs) = rev xs @ rev ys"
+    by simp
+  show ?case
+    sorry
+    unfolding f1 f2
+    by simp
+qed
+[end patched]
+[DEBUG repair_block] verify after patch: ok=False, block_type=have-show, last_output_starts='  have f2: "rev (ys @ xs) = rev xs @ rev ys"\n    by simp'
+[DEBUG verify] starting verify with timeout=30s, text_len=301
+[DEBUG verify] result_count=5 ok=False elapsed=2.2s
+[repair] Stage 1 unverified after 1 attempt(s); ESCALATING to Stage 2 (sub-proof repair)
+[fill] Skipping fill for hole @b58e8b5015b25b05; running repairs at stage 2
+[repair] State block (len=114):
+proof (prove)
+using this:
+  rev (xs @ ys) = rev ys @ rev xs
+
+goal (1 subgoal):
+ 1. rev (ys @ xs) = rev xs @ rev ys
+[repair] Trying case-block repair…
+[repair] case-block (input) (len=211):
+  case (Cons x xs)
+  have f1: "rev (x # xs @ ys) = rev (xs @ ys) @ [x]"
+    by simp
+  have f2: "rev (ys @ xs) = rev xs @ rev ys"
+    using Cons.IH
+    sorry
+  show ?case
+    sorry
+    unfolding f1 f2
+    by simp
+[repair] proof_context (LLM input) (len=101):
+lemma "rev (xs @ ys) = rev ys @ rev xs"
+proof (induction xs)
+  case Nil
+  show ?case
+    by simp
+next
+[repair] errors (LLM input) (len=52):
+Illegal application of proof command in "state" mode
+[repair] counterexamples (LLM input) (len=6):
+(none)
+[repair] prior_block_failures (LLM input) (len=209):
+case (Cons x xs)
+  have f1: "rev (x # xs @ ys) = rev (xs @ ys) @ [x]"
+    by simp
+  have f2: "rev (ys @ xs) = rev xs @ rev ys"
+    using Cons.IH
+    sorry
+  show ?case
+    sorry
+    unfolding f1 f2
+    by simp
+[repair] case-block (output) (len=219):
+  case (Cons x xs)
+    have f1: "rev (x # xs @ ys) = rev (xs @ ys) @ [x]"
+      by simp
+    have f2: "rev (ys @ xs) = rev xs @ rev ys"
+      using Cons.IH
+      by simp
+    show ?case
+      unfolding f1 f2
+      by simp
+[DEBUG repair_block] patched proof:
+lemma "rev (xs @ ys) = rev ys @ rev xs"
+proof (induction xs)
+  case Nil
+  show ?case
+    by simp
+next
+  case (Cons x xs)
+    have f1: "rev (x # xs @ ys) = rev (xs @ ys) @ [x]"
+      by simp
+    have f2: "rev (ys @ xs) = rev xs @ rev ys"
+      using Cons.IH
+      by simp
+    show ?case
+      unfolding f1 f2
+      by simp
+qed
+[end patched]
+[DEBUG repair_block] verify after patch: ok=True, block_type=case, last_output_starts='  case (Cons x xs)\n    have f1: "rev (x # xs @ ys) = rev (xs'
+[DEBUG verify] starting verify with timeout=30s, text_len=325
+[DEBUG verify] result_count=4 ok=True elapsed=2.1s
+[repair] Stage 2 repair verified! Clearing progress and moving on.
+[DEBUG final] sorry_in_full=False success_flag=True
+[DEBUG verify] starting verify with timeout=30s, text_len=325
+[DEBUG verify] result_count=4 ok=True elapsed=2.1s
+[DEBUG final] _verify_full_proof returned True
+[planner]   outline chars=325 fills=0 failed_holes=0
+Current proof outline:
+lemma "rev (xs @ ys) = rev ys @ rev xs"
+proof (induction xs)
+  case Nil
+  show ?case
+    by simp
+next
+  case (Cons x xs)
+    have f1: "rev (x # xs @ ys) = rev (xs @ ys) @ [x]"
+      by simp
+    have f2: "rev (ys @ xs) = rev xs @ rev ys"
+      using Cons.IH
+      by simp
+    show ?case
+      unfolding f1 f2
+      by simp
+qed
+
+[planner]   verifying with Isabelle…
+session_id: ac74ba4a-ddab-4174-a357-4144a63678ff | session: HOL
+[planner]   verify=ok
+[planner]   done in 174.06s | success=True had_sorry=False verified_ok=True
+[mode_auto__k1__t180__repairs_on__model_qwen2.5-coder:14b__verify] (run 1/1) [8/10] map f (xs @ ys) = map f xs @ map f ys
+[planner] ▶ goal: map f (xs @ ys) = map f xs @ map f ys
+[planner]   mode=auto k=1 timeout=180s repairs=True
+[DEBUG verify] starting verify with timeout=30s, text_len=294
+[DEBUG verify] result_count=5 ok=True elapsed=2.4s
+[planner]   outline chars=294 fills=0 failed_holes=0
+Current proof outline:
+lemma "map f (xs @ ys) = map f xs @ map f ys"
+proof (induction xs)
+  case Nil
+  show ?case by simp
+next
+  case (Cons x xs)
+  have f1: "map f (x # xs @ ys) = f x # map f (xs @ ys)" by simp
+  have f2: "map f (xs @ ys) = map f xs @ map f ys" by (rule Cons.IH)
+  show ?case using f1 f2 by simp
+qed
+
+[planner]   verifying with Isabelle…
+session_id: 4d6c075d-0d52-423f-8efe-be807d1433fc | session: HOL
+[planner]   verify=ok
+[planner]   done in 103.22s | success=True had_sorry=False verified_ok=True
+[mode_auto__k1__t180__repairs_on__model_qwen2.5-coder:14b__verify] (run 1/1) [9/10] sum_list (xs @ ys) = sum_list xs + sum_list ys
+[planner] ▶ goal: sum_list (xs @ ys) = sum_list xs + sum_list ys
+[planner]   mode=auto k=1 timeout=180s repairs=True
+[fill] State block (length=151):
+proof (prove)
+goal (1 subgoal):
+ 1. sum_list (xs @ ys) = sum_list xs + sum_list ys \<Longrightarrow>
+    sum_list (xs @ ys) = sum_list xs + sum_list ys
+
+▶ Goal: sum_list (xs @ ys) = sum_list xs + sum_list ys
+Models: qwen2.5-coder:14b | Beam=3 | MaxDepth=6 | Timeout=162s
+Sledgehammer finishers: ['by simp', 'by auto', 'by force', 'by fastforce', 'by (metis sum_list_append)']
+Finishers (origin): [sledge:by simp, sledge:by auto, sledge:by force, sledge:by fastforce, sledge:by (metis sum_list_append), llm:by (simp add: algebra_simps), llm:by (simp add: append_assoc), llm:by (metis append_assoc), llm:by (induction xs), llm:by (rule_tac x=ys in exI, simp), llm:by (cases xs, simp_all)]
+  finish ✓ [sledge] by simp  (2234ms)
+✔ PROVED
+[DEBUG splice] sleeping 3s to let server settle...
+[DEBUG splice] fin='by simp' indent=4 text_len=344
+[DEBUG splice] new_text:
+lemma "sum_list (xs @ ys) = sum_list xs + sum_list ys"
+proof (induction xs)
+  case Nil
+  show ?case
+    by simp
+next
+  case (Cons x xs)
+  have f1: "sum_list (x # xs @ ys) = x + sum_list (xs @ ys)"
+    by simp
+  have f2: "sum_list (xs @ ys) = sum_list xs + sum_list ys"
+    using Cons.IH
+    by simp
+  show ?case
+    using f1 f2
+    by simp
+qed
+
+[end splice]
+[DEBUG verify] starting verify with timeout=30s, text_len=344
+[DEBUG verify] result_count=4 ok=False elapsed=2.2s
+[fill] Fill made no progress. Escalating to repair stage 1...
+[repair] State block (len=144):
+proof (prove)
+using this:
+  sum_list (xs @ ys) = sum_list xs + sum_list ys
+
+goal (1 subgoal):
+ 1. sum_list (xs @ ys) = sum_list xs + sum_list ys
+[repair] Trying have/show block repair…
+[repair] have-show-block (input) (len=87):
+  have f2: "sum_list (xs @ ys) = sum_list xs + sum_list ys"
+    using Cons.IH
+    sorry
+[repair] proof_context (LLM input) (len=208):
+lemma "sum_list (xs @ ys) = sum_list xs + sum_list ys"
+proof (induction xs)
+  case Nil
+  show ?case
+    by simp
+next
+  case (Cons x xs)
+  have f1: "sum_list (x # xs @ ys) = x + sum_list (xs @ ys)"
+    by simp
+[repair] errors (LLM input) (len=117):
+Failed to finish proof\<^here>:
+goal (1 subgoal):
+ 1. x + (sum_list xs + sum_list ys) = x + sum_list xs + sum_list ys
+[repair] counterexamples (LLM input) (len=6):
+(none)
+[repair] prior_block_failures (LLM input) (len=85):
+have f2: "sum_list (xs @ ys) = sum_list xs + sum_list ys"
+    using Cons.IH
+    sorry
+[repair] have-show-block (output) (len=72):
+  have f2: "sum_list (x # xs @ ys) = x + sum_list (xs @ ys)"
+    by simp
+[DEBUG repair_block] patched proof:
+lemma "sum_list (xs @ ys) = sum_list xs + sum_list ys"
+proof (induction xs)
+  case Nil
+  show ?case
+    by simp
+next
+  case (Cons x xs)
+  have f1: "sum_list (x # xs @ ys) = x + sum_list (xs @ ys)"
+    by simp
+  have f2: "sum_list (x # xs @ ys) = x + sum_list (xs @ ys)"
+    by simp
+  show ?case
+    using f1 f2
+    by simp
+qed
+[end patched]
+[DEBUG repair_block] verify after patch: ok=False, block_type=have-show, last_output_starts='  have f2: "sum_list (x # xs @ ys) = x + sum_list (xs @ ys)"'
+[DEBUG verify] starting verify with timeout=30s, text_len=326
+[DEBUG verify] result_count=3 ok=False elapsed=2.0s
+[repair] Stage 1 unverified after 1 attempt(s); ESCALATING to Stage 2 (sub-proof repair)
+[fill] Skipping fill for hole @5fd23687ef111a37; running repairs at stage 2
+[repair] State block (len=144):
+proof (prove)
+using this:
+  sum_list (xs @ ys) = sum_list xs + sum_list ys
+
+goal (1 subgoal):
+ 1. sum_list (xs @ ys) = sum_list xs + sum_list ys
+[repair] Trying case-block repair…
+[repair] case-block (input) (len=220):
+  case (Cons x xs)
+  have f1: "sum_list (x # xs @ ys) = x + sum_list (xs @ ys)"
+    by simp
+  have f2: "sum_list (xs @ ys) = sum_list xs + sum_list ys"
+    using Cons.IH
+    sorry
+  show ?case
+    using f1 f2
+    by simp
+[repair] proof_context (LLM input) (len=116):
+lemma "sum_list (xs @ ys) = sum_list xs + sum_list ys"
+proof (induction xs)
+  case Nil
+  show ?case
+    by simp
+next
+[repair] errors (LLM input) (len=117):
+Failed to finish proof\<^here>:
+goal (1 subgoal):
+ 1. x + (sum_list xs + sum_list ys) = x + sum_list xs + sum_list ys
+[repair] counterexamples (LLM input) (len=6):
+(none)
+[repair] prior_block_failures (LLM input) (len=218):
+case (Cons x xs)
+  have f1: "sum_list (x # xs @ ys) = x + sum_list (xs @ ys)"
+    by simp
+  have f2: "sum_list (xs @ ys) = sum_list xs + sum_list ys"
+    using Cons.IH
+    sorry
+  show ?case
+    using f1 f2
+    by simp
+[repair] case-block (output) (len=238):
+  case (Cons x xs)
+    have f1: "sum_list (x # xs @ ys) = x + sum_list (xs @ ys)"
+      by simp
+    have f2: "sum_list (xs @ ys) = sum_list xs + sum_list ys"
+      using Cons.IH
+      by auto
+    show ?case
+      using f1 f2
+      by simp
+[DEBUG repair_block] patched proof:
+lemma "sum_list (xs @ ys) = sum_list xs + sum_list ys"
+proof (induction xs)
+  case Nil
+  show ?case
+    by simp
+next
+  case (Cons x xs)
+    have f1: "sum_list (x # xs @ ys) = x + sum_list (xs @ ys)"
+      by simp
+    have f2: "sum_list (xs @ ys) = sum_list xs + sum_list ys"
+      using Cons.IH
+      by auto
+    show ?case
+      using f1 f2
+      by simp
+qed
+[end patched]
+[DEBUG repair_block] verify after patch: ok=False, block_type=case, last_output_starts='  case (Cons x xs)\n    have f1: "sum_list (x # xs @ ys) = x '
+[DEBUG verify] starting verify with timeout=30s, text_len=359
+[DEBUG verify] result_count=5 ok=False elapsed=2.2s
+[repair] Stage 2 changed but unverified (attempt 1/2). Opening sorries...
+[repair] Could not open sorries; escalating stage...
+[DEBUG final] sorry_in_full=False success_flag=True
+[DEBUG verify] starting verify with timeout=30s, text_len=359
+[DEBUG verify] result_count=4 ok=False elapsed=2.1s
+[DEBUG final] _verify_full_proof returned False
+[DEBUG final] returning failure, final text length=359
+[planner]   outline chars=359 fills=0 failed_holes=0
+Current proof outline:
+lemma "sum_list (xs @ ys) = sum_list xs + sum_list ys"
+proof (induction xs)
+  case Nil
+  show ?case
+    by simp
+next
+  case (Cons x xs)
+    have f1: "sum_list (x # xs @ ys) = x + sum_list (xs @ ys)"
+      by simp
+    have f2: "sum_list (xs @ ys) = sum_list xs + sum_list ys"
+      using Cons.IH
+      by auto
+    show ?case
+      using f1 f2
+      by simp
+qed
+
+[planner]   verifying with Isabelle…
+session_id: 93ce6ad2-6db3-4012-8054-eb589f2233c7 | session: HOL
+[planner]   verify=fail
+[planner]   done in 215.48s | success=False had_sorry=False verified_ok=False
+[mode_auto__k1__t180__repairs_on__model_qwen2.5-coder:14b__verify] (run 1/1) [10/10] filter P (xs @ ys) = filter P xs @ filter P ys
+[planner] ▶ goal: filter P (xs @ ys) = filter P xs @ filter P ys
+[planner]   mode=auto k=1 timeout=180s repairs=True
+[fill] State block (length=100):
+proof (prove)
+goal (1 subgoal):
+ 1. P x = True \<Longrightarrow> filter P (x # xs) = x # filter P xs
+
+▶ Goal: filter P (xs @ ys) = filter P xs @ filter P ys
+Models: qwen2.5-coder:14b | Beam=3 | MaxDepth=6 | Timeout=53s
+Sledgehammer finishers: ['by fastforce', 'by auto', 'by simp', 'by force', 'by (metis filter_append)']
+Finishers (origin): [sledge:by fastforce, sledge:by auto, sledge:by simp, sledge:by force, sledge:by (metis filter_append), llm:by (simp add: filter.simps), llm:by (induction xs), llm:by (cases xs), llm:by (rule_tac x=x in filter.simps, simp_all)]
+  finish ✓ [sledge] by fastforce  (2234ms)
+✔ PROVED
+[DEBUG splice] sleeping 3s to let server settle...
+[DEBUG splice] fin='by fastforce' indent=4 text_len=405
+[DEBUG splice] new_text:
+lemma "filter P (xs @ ys) = filter P xs @ filter P ys"
+proof (induction xs)
+  case Nil
+  show ?case by simp
+next
+  case (Cons x xs)
+  have f1: "filter P (ys) = filter P [] @ filter P ys" by simp
+  have f2: "P x = True ⟹ filter P (x # xs) = x # filter P xs"
+    by fastforce
+  have f3: "P x = False ⟹ filter P (x # xs) = filter P xs"
+    sorry
+  show ?case
+    using Cons.IH f1 f2 f3 by simp
+    sorry
+qed
+
+[end splice]
+[DEBUG verify] starting verify with timeout=30s, text_len=405
+[DEBUG verify] result_count=4 ok=False elapsed=2.2s
+[fill] Fill made no progress. Escalating to repair stage 1...
+[repair] State block (len=100):
+proof (prove)
+goal (1 subgoal):
+ 1. P x = True \<Longrightarrow> filter P (x # xs) = x # filter P xs
+[repair] Trying have/show block repair…
+[repair] have-show-block (input) (len=71):
+  have f2: "P x = True ⟹ filter P (x # xs) = x # filter P xs"
+    sorry
+[repair] proof_context (LLM input) (len=194):
+lemma "filter P (xs @ ys) = filter P xs @ filter P ys"
+proof (induction xs)
+  case Nil
+  show ?case by simp
+next
+  case (Cons x xs)
+  have f1: "filter P (ys) = filter P [] @ filter P ys" by simp
+[repair] errors (LLM input) (len=52):
+Illegal application of proof command in "state" mode
+[repair] counterexamples (LLM input) (len=6):
+(none)
+[repair] prior_block_failures (LLM input) (len=69):
+have f2: "P x = True ⟹ filter P (x # xs) = x # filter P xs"
+    sorry
+[repair] have-show-block (output) (len=91):
+  have f2: "filter P (x # xs) = (if P x then x # filter P xs else filter P xs)"
+    by simp
+[DEBUG repair_block] patched proof:
+lemma "filter P (xs @ ys) = filter P xs @ filter P ys"
+proof (induction xs)
+  case Nil
+  show ?case by simp
+next
+  case (Cons x xs)
+  have f1: "filter P (ys) = filter P [] @ filter P ys" by simp
+  have f2: "filter P (x # xs) = (if P x then x # filter P xs else filter P xs)"
+    by simp
+  have f3: "P x = False ⟹ filter P (x # xs) = filter P xs"
+    sorry
+  show ?case
+    using Cons.IH f1 f2 f3 by simp
+    sorry
+qed
+[end patched]
+[DEBUG repair_block] verify after patch: ok=False, block_type=have-show, last_output_starts='  have f2: "filter P (x # xs) = (if P x then x # filter P xs'
+[DEBUG verify] starting verify with timeout=30s, text_len=417
+[DEBUG verify] result_count=3 ok=False elapsed=2.0s
+[repair] Stage 1 unverified after 1 attempt(s); ESCALATING to Stage 2 (sub-proof repair)
+[fill] Skipping fill for hole @28271b8234037ee8; running repairs at stage 2
+[repair] State block (len=100):
+proof (prove)
+goal (1 subgoal):
+ 1. P x = True \<Longrightarrow> filter P (x # xs) = x # filter P xs
+[repair] Trying case-block repair…
+[repair] case-block (input) (len=280):
+  case (Cons x xs)
+  have f1: "filter P (ys) = filter P [] @ filter P ys" by simp
+  have f2: "P x = True ⟹ filter P (x # xs) = x # filter P xs"
+    sorry
+  have f3: "P x = False ⟹ filter P (x # xs) = filter P xs"
+    sorry
+  show ?case
+    using Cons.IH f1 f2 f3 by simp
+    sorry
+[repair] proof_context (LLM input) (len=112):
+lemma "filter P (xs @ ys) = filter P xs @ filter P ys"
+proof (induction xs)
+  case Nil
+  show ?case by simp
+next
+[repair] errors (LLM input) (len=52):
+Illegal application of proof command in "state" mode
+[repair] counterexamples (LLM input) (len=6):
+(none)
+[repair] prior_block_failures (LLM input) (len=278):
+case (Cons x xs)
+  have f1: "filter P (ys) = filter P [] @ filter P ys" by simp
+  have f2: "P x = True ⟹ filter P (x # xs) = x # filter P xs"
+    sorry
+  have f3: "P x = False ⟹ filter P (x # xs) = filter P xs"
+    sorry
+  show ?case
+    using Cons.IH f1 f2 f3 by simp
+    sorry
+[repair] case-block (output) (len=275):
+  case (Cons x xs)
+    have f1: "filter P (ys) = filter P [] @ filter P ys" by simp
+    have f2: "P x ⟹ filter P (x # xs) = x # filter P xs"
+      by simp
+    have f3: "¬ P x ⟹ filter P (x # xs) = filter P xs"
+      by simp
+    show ?case
+      using Cons.IH f1 f2 f3 by simp
+[DEBUG repair_block] patched proof:
+lemma "filter P (xs @ ys) = filter P xs @ filter P ys"
+proof (induction xs)
+  case Nil
+  show ?case by simp
+next
+  case (Cons x xs)
+    have f1: "filter P (ys) = filter P [] @ filter P ys" by simp
+    have f2: "P x ⟹ filter P (x # xs) = x # filter P xs"
+      by simp
+    have f3: "¬ P x ⟹ filter P (x # xs) = filter P xs"
+      by simp
+    show ?case
+      using Cons.IH f1 f2 f3 by simp
+qed
+[end patched]
+[DEBUG repair_block] verify after patch: ok=True, block_type=case, last_output_starts='  case (Cons x xs)\n    have f1: "filter P (ys) = filter P []'
+[DEBUG verify] starting verify with timeout=30s, text_len=392
+[DEBUG verify] result_count=4 ok=True elapsed=2.1s
+[repair] Stage 2 repair verified! Clearing progress and moving on.
+[DEBUG final] sorry_in_full=False success_flag=True
+[DEBUG verify] starting verify with timeout=30s, text_len=392
+[DEBUG verify] result_count=4 ok=True elapsed=2.1s
+[DEBUG final] _verify_full_proof returned True
+[planner]   outline chars=392 fills=0 failed_holes=0
+Current proof outline:
+lemma "filter P (xs @ ys) = filter P xs @ filter P ys"
+proof (induction xs)
+  case Nil
+  show ?case by simp
+next
+  case (Cons x xs)
+    have f1: "filter P (ys) = filter P [] @ filter P ys" by simp
+    have f2: "P x ⟹ filter P (x # xs) = x # filter P xs"
+      by simp
+    have f3: "¬ P x ⟹ filter P (x # xs) = filter P xs"
+      by simp
+    show ?case
+      using Cons.IH f1 f2 f3 by simp
+qed
+
+[planner]   verifying with Isabelle…
+session_id: b94c89c4-3959-4aac-b367-9afbdaff12ef | session: HOL
+[planner]   verify=ok
+[planner]   done in 201.53s | success=True had_sorry=False verified_ok=True
+
+=== Planner Benchmark Report ===
+Suite:  smoke
+Config: mode_auto__k1__t180__repairs_on__model_qwen2.5-coder:14b__verify
+  Success: 7 / 10  (70.0%)
+  Median time (all): 172.15s | Median fills: 0
+CSV → datasets\planner_results\20260514-195041-smoke-mode_auto__k1__t180__repairs_on__model_qwen2.5-coder_14b__verify.csv

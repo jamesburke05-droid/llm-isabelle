@@ -1,0 +1,136 @@
+[planner] ▶ goal: True
+[planner]   mode=auto k=1 timeout=180s repairs=True
+[fill] State block (length=40):
+proof (state)
+goal (1 subgoal):
+ 1. True
+
+▶ Goal: True
+Models: qwen2.5-coder:14b | Beam=3 | MaxDepth=6 | Timeout=32s
+Sledgehammer finishers: ['by satx', 'by presburger', 'by auto', 'by simp', 'by blast']
+Finishers (origin): [sledge:by satx, sledge:by presburger, sledge:by auto, sledge:by simp, sledge:by blast, llm:by fastforce, llm:by meson]
+  finish ✓ [sledge] by satx  (2250ms)
+✔ PROVED
+[DEBUG splice] sleeping 3s to let server settle...
+[DEBUG splice] fin='by satx' indent=18 text_len=143
+[DEBUG splice] new_text:
+lemma "True"
+proof -
+                  by satx
+    sorry
+  have f2: "..."  using f1  sorry
+    sorry
+  show ?thesis
+    using f2
+    sorry
+qed
+
+[end splice]
+[DEBUG verify] starting verify with timeout=30s, text_len=143
+[DEBUG verify] result_count=5 ok=False elapsed=2.2s
+[fill] Fill made no progress. Escalating to repair stage 1...
+[repair] State block (len=40):
+proof (state)
+goal (1 subgoal):
+ 1. True
+[repair] Trying have/show block repair…
+[repair] have-show-block (input) (len=33):
+  have f1: "..."  sorry
+    sorry
+[repair] proof_context (LLM input) (len=20):
+lemma "True"
+proof -
+[repair] errors (LLM input) (len=117):
+Unbound schematic variable: \<dots>
+Illegal application of proof command in "state" mode
+Undefined fact: "f2"\<^here>
+[repair] counterexamples (LLM input) (len=6):
+(none)
+[repair] prior_block_failures (LLM input) (len=31):
+have f1: "..."  sorry
+    sorry
+[repair] have-show-block (output) (len=25):
+  have f1: "True" by simp
+[DEBUG repair_block] patched proof:
+lemma "True"
+proof -
+  have f1: "True" by simp
+  have f2: "..."  using f1  sorry
+    sorry
+  show ?thesis
+    using f2
+    sorry
+qed
+[end patched]
+[DEBUG repair_block] verify after patch: ok=False, block_type=have-show, last_output_starts='  have f1: "True" by simp'
+[repair] prior_block_failures (LLM input) (len=59):
+have f1: "..."  sorry
+    sorry
+---
+have f1: "True" by simp
+[repair] Skipping duplicate block (fingerprint: have f1:...)
+[repair] prior_block_failures (LLM input) (len=59):
+have f1: "..."  sorry
+    sorry
+---
+have f1: "True" by simp
+[repair] Skipping duplicate block (fingerprint: have f1:...)
+[DEBUG verify] starting verify with timeout=30s, text_len=132
+[DEBUG verify] result_count=4 ok=False elapsed=2.1s
+[repair] Stage 1 unverified after 1 attempt(s); ESCALATING to Stage 2 (sub-proof repair)
+[fill] Skipping fill for hole @718d8273df7f22d8; running repairs at stage 2
+[repair] State block (len=40):
+proof (state)
+goal (1 subgoal):
+ 1. True
+[repair] Trying subproof repair…
+[repair] subproof-block (input) (len=127):
+proof -
+  have f1: "..."  sorry
+    sorry
+  have f2: "..."  using f1  sorry
+    sorry
+  show ?thesis
+    using f2
+    sorry
+qed
+[repair] proof_context (LLM input) (len=12):
+lemma "True"
+[repair] errors (LLM input) (len=117):
+Unbound schematic variable: \<dots>
+Illegal application of proof command in "state" mode
+Undefined fact: "f2"\<^here>
+[repair] counterexamples (LLM input) (len=6):
+(none)
+[repair] prior_block_failures (LLM input) (len=127):
+proof -
+  have f1: "..."  sorry
+    sorry
+  have f2: "..."  using f1  sorry
+    sorry
+  show ?thesis
+    using f2
+    sorry
+qed
+[repair] subproof-block (output) (len=112):
+proof -
+  have f1: "True" by simp
+  have f2: "True" using f1 by simp
+  show ?thesis
+    using f2
+    by simp
+qed
+[DEBUG repair_block] patched proof:
+lemma "True"
+proof -
+  have f1: "True" by simp
+  have f2: "True" using f1 by simp
+  show ?thesis
+    using f2
+    by simp
+qed
+[end patched]
+[DEBUG repair_block] verify after patch: ok=True, block_type=subproof, last_output_starts='proof -\n  have f1: "True" by simp\n  have f2: "True" using f1'
+[DEBUG verify] starting verify with timeout=30s, text_len=125
+[DEBUG verify] result_count=5 ok=True elapsed=2.2s
+[repair] Stage 2 repair verified! Clearing progress and moving on.
