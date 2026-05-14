@@ -1,0 +1,27 @@
+# List induction goals - foundational
+length (xs @ xs) = 2 * length xs
+length (map f xs) = length xs
+rev (map f xs) = map f (rev xs)
+filter (\<lambda>x. True) xs = xs
+filter (\<lambda>x. False) xs = []
+concat (map (\<lambda>x. [x]) xs) = xs
+
+# Nat induction
+n + 0 = (n :: nat)
+0 + n = (n :: nat)
+Suc n = n + (1 :: nat)
+(n :: nat) * 0 = 0
+
+# Combined / harder
+length (rev xs) + length (rev ys) = length xs + length ys
+sum_list (map f []) = (0 :: nat)
+sum_list (rev xs) = sum_list (xs :: nat list)
+map id xs = xs
+map f (map g xs) = map (\<lambda>x. f (g x)) xs
+
+# Stretch (probably needs CEGIS to converge)
+take n xs @ drop n xs = xs
+length (take n xs) \<le> length xs
+xs @ [] = xs
+[] @ xs = xs
+hd (xs @ [x]) = (if xs = [] then x else hd xs)

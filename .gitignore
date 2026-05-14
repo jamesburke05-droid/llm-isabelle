@@ -8,3 +8,7 @@ datasets/server.log
 logs/
 planner_verify_retry.log
 logs/*.log
+
+# Third-party benchmarks (cloned, not vendored)
+datasets/external/
+miniF2F/

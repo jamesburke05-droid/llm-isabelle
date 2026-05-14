@@ -1,0 +1,19 @@
+# miniF2F induction subset - stretch dataset (8 goals)
+# Some goals require assumptions/contexts that our bench format does not support;
+# these are documented as expected failures.
+#
+# Original miniF2F context (where applicable):
+#   - fixes p :: nat assumes "prime p"        (Fermat's little theorem)
+#   - fixes n :: nat assumes "n > 3"          (factorial growth)
+#   - fixes x :: real assumes "x \<ge> -1"    (Bernoulli)
+#
+# We pin types inline where possible to give the bench a chance.
+
+(11::int) dvd (10^(n::nat) - (-1)^n)
+(12::int) dvd 4^((n::nat)+1) + 20
+(1 + (n::nat) * (x::real)) \<le> (1 + x)^n
+fact (n::nat) < n^(n - 1)
+(\<Sum> k<(n::nat). k^3) = (\<Sum> k<n. k)^2
+(p::nat) dvd (a^p - (a::int))
+(\<Prod> k \<in>{1..<(n::nat)+1}. (1 + 1 / 2^k)) < 5 / 2
+(\<Prod> k \<in> {1..<(n::nat)+1}. (1 + 1 / k^3)) \<le> 3 - 1 / n
