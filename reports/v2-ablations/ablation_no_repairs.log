@@ -1,0 +1,165 @@
+server "planner" = 127.0.0.1:64725 (password "761b197f-da50-4536-b2b9-b301abd1c727")
+session_id: a9a6eca8-abfc-472d-a9d6-6d2b626896a5 | session: HOL
+
+=== Planner suite: smoke (10 goals) ===
+[mode_auto__k1__t180__repairs_off__model_qwen2.5-coder:14b__verify] (run 1/1) [1/10] True
+[DEBUG splice] sleeping 3s to let server settle...
+[DEBUG splice] fin='by satx' indent=18 text_len=147
+[DEBUG splice] new_text:
+lemma "True"
+proof -
+                  by satx
+    sorry
+  have f2: "..."  using f1  sorry
+    sorry
+  show ?thesis  using f2  sorry
+    sorry
+qed
+
+[end splice]
+[DEBUG verify] starting verify with timeout=30s, text_len=147
+[DEBUG verify] result_count=4 ok=False elapsed=2.2s
+[DEBUG final] sorry_in_full=True success_flag=False
+[DEBUG final] returning failure, final text length=145
+[mode_auto__k1__t180__repairs_off__model_qwen2.5-coder:14b__verify] (run 1/1) [2/10] 1 + 1 = (2::nat)
+[DEBUG verify] starting verify with timeout=30s, text_len=133
+[DEBUG verify] result_count=5 ok=True elapsed=2.4s
+session_id: 6a3d93b8-f1af-410d-ae15-14c415072cbc | session: HOL
+[mode_auto__k1__t180__repairs_off__model_qwen2.5-coder:14b__verify] (run 1/1) [3/10] length [1, 2, 3] = 3
+[DEBUG splice] sleeping 3s to let server settle...
+[DEBUG splice] fin='by simp' indent=4 text_len=269
+[DEBUG splice] new_text:
+lemma "length [1, 2, 3] = 3"
+proof -
+  have f1: "length [] = 0" 
+    by simp
+  have f2: "length (x # xs) = Suc (length xs)" 
+    by simp
+    for x xs 
+    by simp
+  have f3: "length [1, 2] = 2"
+    using f1 f2
+    by simp
+  show ?thesis
+    using f3 f2
+    by simp
+qed
+
+[end splice]
+[DEBUG verify] starting verify with timeout=30s, text_len=269
+[DEBUG verify] result_count=4 ok=False elapsed=2.3s
+[DEBUG final] sorry_in_full=True success_flag=False
+[DEBUG final] returning failure, final text length=267
+[mode_auto__k1__t180__repairs_off__model_qwen2.5-coder:14b__verify] (run 1/1) [4/10] length (rev xs) = length xs
+[DEBUG verify] starting verify with timeout=30s, text_len=226
+[DEBUG verify] result_count=5 ok=True elapsed=2.4s
+session_id: 17eb8bee-a0ec-44e7-99e8-4294d0bac41b | session: HOL
+[mode_auto__k1__t180__repairs_off__model_qwen2.5-coder:14b__verify] (run 1/1) [5/10] rev (rev xs) = xs
+[DEBUG splice] sleeping 3s to let server settle...
+[DEBUG splice] fin='by auto' indent=4 text_len=338
+[DEBUG splice] new_text:
+lemma "rev (rev xs) = xs"
+proof (induction xs)
+  case Nil
+  show ?case
+    by simp
+next
+  case (Cons x xs)
+  have f1: "rev (xs @ [x]) = rev [x] @ rev xs"
+    by simp
+  have f2: "rev [x] = [x]"
+    by simp
+  have f3: "rev (rev xs) = xs"
+    using Cons.IH
+    by auto
+  show ?case
+    sorry
+    unfolding f1 f2
+    using f3
+    by simp
+qed
+
+[end splice]
+[DEBUG verify] starting verify with timeout=30s, text_len=338
+[DEBUG verify] result_count=4 ok=False elapsed=2.2s
+[DEBUG final] sorry_in_full=True success_flag=False
+[DEBUG final] returning failure, final text length=336
+[mode_auto__k1__t180__repairs_off__model_qwen2.5-coder:14b__verify] (run 1/1) [6/10] length (xs @ ys) = length xs + length ys
+[DEBUG final] sorry_in_full=False success_flag=True
+[DEBUG verify] starting verify with timeout=30s, text_len=328
+[DEBUG verify] result_count=5 ok=True elapsed=2.4s
+[DEBUG final] _verify_full_proof returned True
+session_id: 6e6f207b-e82a-4e34-8180-f4da1a04919f | session: HOL
+[mode_auto__k1__t180__repairs_off__model_qwen2.5-coder:14b__verify] (run 1/1) [7/10] rev (xs @ ys) = rev ys @ rev xs
+[DEBUG verify] starting verify with timeout=30s, text_len=336
+[DEBUG verify] result_count=5 ok=False elapsed=2.4s
+[DEBUG topdown] entering top-down repair check, left_s=155, repairs=False
+session_id: 595553c5-b82a-420b-8f3d-a1753364bf26 | session: HOL
+[mode_auto__k1__t180__repairs_off__model_qwen2.5-coder:14b__verify] (run 1/1) [8/10] map f (xs @ ys) = map f xs @ map f ys
+[DEBUG final] sorry_in_full=False success_flag=True
+[DEBUG verify] starting verify with timeout=30s, text_len=300
+[DEBUG verify] result_count=5 ok=True elapsed=2.4s
+[DEBUG final] _verify_full_proof returned True
+session_id: 5455d0cf-c144-4b3e-955a-3f4bbee200c4 | session: HOL
+[mode_auto__k1__t180__repairs_off__model_qwen2.5-coder:14b__verify] (run 1/1) [9/10] sum_list (xs @ ys) = sum_list xs + sum_list ys
+[DEBUG splice] sleeping 3s to let server settle...
+[DEBUG splice] fin='by simp' indent=4 text_len=344
+[DEBUG splice] new_text:
+lemma "sum_list (xs @ ys) = sum_list xs + sum_list ys"
+proof (induction xs)
+  case Nil
+  show ?case
+    by simp
+next
+  case (Cons x xs)
+  have f1: "sum_list (x # xs @ ys) = x + sum_list (xs @ ys)"
+    by simp
+  have f2: "sum_list (xs @ ys) = sum_list xs + sum_list ys"
+    using Cons.IH
+    by simp
+  show ?case
+    using f1 f2
+    by simp
+qed
+
+[end splice]
+[DEBUG verify] starting verify with timeout=30s, text_len=344
+[DEBUG verify] result_count=4 ok=False elapsed=2.2s
+[DEBUG final] sorry_in_full=True success_flag=False
+[DEBUG final] returning failure, final text length=342
+[mode_auto__k1__t180__repairs_off__model_qwen2.5-coder:14b__verify] (run 1/1) [10/10] filter P (xs @ ys) = filter P xs @ filter P ys
+[DEBUG splice] sleeping 3s to let server settle...
+[DEBUG splice] fin='by fastforce' indent=4 text_len=488
+[DEBUG splice] new_text:
+lemma "filter P (xs @ ys) = filter P xs @ filter P ys"
+proof (induction xs)
+  case Nil
+  show ?case
+    by simp
+next
+  case (Cons x xs)
+  have f1: "filter P (ys) = filter P [] @ filter P ys"
+    by simp
+  have f2: "filter P (x # xs) = (if P x then [x] else []) @ filter P xs"
+    by simp
+  have f3: "(if P x then [x] else []) @ filter P xs @ filter P [] = (if P x then [x] else []) @ filter P xs"
+    using f1
+    by simp
+  show ?case
+    by fastforce
+    unfolding f2 f3
+    by simp
+qed
+
+[end splice]
+[DEBUG verify] starting verify with timeout=30s, text_len=488
+[DEBUG verify] result_count=4 ok=False elapsed=2.2s
+[DEBUG final] sorry_in_full=True success_flag=False
+[DEBUG final] returning failure, final text length=481
+
+=== Planner Benchmark Report ===
+Suite:  smoke
+Config: mode_auto__k1__t180__repairs_off__model_qwen2.5-coder:14b__verify
+  Success: 4 / 10  (40.0%)
+  Median time (all): 189.92s | Median fills: 0
+CSV → datasets\planner_results\20260514-172308-smoke-mode_auto__k1__t180__repairs_off__model_qwen2.5-coder_14b__verify.csv

@@ -1,0 +1,475 @@
+server "planner" = 127.0.0.1:51417 (password "0ccbaccb-c6a9-4bc5-9ec1-2667f82d1987")
+session_id: 3bff4f25-0cd5-4408-9b22-c0f390965d7c | session: HOL
+
+=== Planner suite: smoke (10 goals) ===
+[mode_auto__k1__t180__repairs_on__model_qwen2.5-coder:14b__verify] (run 1/1) [1/10] True
+[DEBUG splice] sleeping 3s to let server settle...
+[DEBUG splice] fin='by satx' indent=18 text_len=143
+[DEBUG splice] new_text:
+lemma "True"
+proof -
+                  by satx
+    sorry
+  have f2: "..."  using f1  sorry
+    sorry
+  show ?thesis
+    using f2
+    sorry
+qed
+
+[end splice]
+[DEBUG verify] starting verify with timeout=30s, text_len=143
+[DEBUG verify] result_count=4 ok=False elapsed=2.2s
+[DEBUG repair_block] patched proof:
+lemma "True"
+proof -
+  have f1: "True" by simp
+  have f2: "..."  using f1  sorry
+    sorry
+  show ?thesis
+    using f2
+    sorry
+qed
+[end patched]
+[DEBUG repair_block] verify after patch: ok=False, block_type=have-show, last_output_starts='  have f1: "True" by simp'
+[DEBUG verify] starting verify with timeout=30s, text_len=132
+[DEBUG verify] result_count=4 ok=False elapsed=2.1s
+[DEBUG splice] sleeping 3s to let server settle...
+[DEBUG splice] fin='by satx' indent=4 text_len=130
+[DEBUG splice] new_text:
+lemma "True"
+proof -
+  have f1: "True" by simp
+  have f2: "..."  using f1  
+
+    by satx
+  show ?thesis
+    using f2
+    sorry
+qed
+[end splice]
+[DEBUG verify] starting verify with timeout=30s, text_len=130
+[DEBUG verify] result_count=4 ok=False elapsed=2.2s
+[DEBUG repair_block] patched proof:
+lemma "True"
+proof -
+  have f1: "True" by simp
+  have f2: "True" using f1 by simp
+  show ?thesis
+    using f2
+    sorry
+qed
+[end patched]
+[DEBUG repair_block] verify after patch: ok=True, block_type=have-show, last_output_starts='  have f2: "True" using f1 by simp'
+[DEBUG verify] starting verify with timeout=30s, text_len=123
+[DEBUG verify] result_count=3 ok=True elapsed=2.0s
+[DEBUG splice] sleeping 3s to let server settle...
+[DEBUG splice] fin='by satx' indent=4 text_len=125
+[DEBUG splice] new_text:
+lemma "True"
+proof -
+  have f1: "True" by simp
+  have f2: "True" using f1 by simp
+  show ?thesis
+    using f2
+    by satx
+qed
+[end splice]
+[DEBUG verify] starting verify with timeout=30s, text_len=125
+[DEBUG verify] result_count=4 ok=True elapsed=2.2s
+[DEBUG final] sorry_in_full=False success_flag=True
+[DEBUG verify] starting verify with timeout=30s, text_len=125
+[DEBUG verify] result_count=3 ok=True elapsed=2.0s
+[DEBUG final] _verify_full_proof returned True
+session_id: f9cbb667-957d-40b5-a6d2-62da8ade5183 | session: HOL
+[mode_auto__k1__t180__repairs_on__model_qwen2.5-coder:14b__verify] (run 1/1) [2/10] 1 + 1 = (2::nat)
+[DEBUG verify] starting verify with timeout=30s, text_len=127
+[DEBUG verify] result_count=5 ok=True elapsed=2.3s
+session_id: 58b46982-9d03-436a-9105-2b99d74dc08f | session: HOL
+[mode_auto__k1__t180__repairs_on__model_qwen2.5-coder:14b__verify] (run 1/1) [3/10] length [1, 2, 3] = 3
+[DEBUG splice] sleeping 3s to let server settle...
+[DEBUG splice] fin='by simp' indent=31 text_len=151
+[DEBUG splice] new_text:
+lemma "length [1, 2, 3] = 3"
+proof -
+                               by simp
+  also have "... + 1 = 3" sorry
+  finally show ?thesis sorry
+    sorry
+qed
+
+[end splice]
+[DEBUG verify] starting verify with timeout=30s, text_len=151
+[DEBUG verify] result_count=4 ok=False elapsed=2.3s
+[DEBUG repair_block] patched proof:
+lemma "length [1, 2, 3] = 3"
+proof -
+  have f1: "length [1, 2] = 2"
+  proof -
+    show ?thesis by simp
+  qed
+  also have "... + 1 = 3" sorry
+  finally show ?thesis sorry
+    sorry
+qed
+[end patched]
+[DEBUG repair_block] verify after patch: ok=False, block_type=have-show, last_output_starts='  have f1: "length [1, 2] = 2"\n  proof -\n    show ?thesis by'
+[DEBUG verify] starting verify with timeout=30s, text_len=183
+[DEBUG verify] result_count=4 ok=False elapsed=2.1s
+[DEBUG splice] sleeping 3s to let server settle...
+[DEBUG splice] fin='by auto' indent=26 text_len=185
+[DEBUG splice] new_text:
+lemma "length [1, 2, 3] = 3"
+proof -
+  have f1: "length [1, 2] = 2"
+  proof -
+    show ?thesis by simp
+  qed
+                          by auto
+  finally show ?thesis sorry
+    sorry
+qed
+[end splice]
+[DEBUG verify] starting verify with timeout=30s, text_len=185
+[DEBUG verify] result_count=4 ok=False elapsed=2.2s
+[DEBUG repair_block] patched proof:
+lemma "length [1, 2, 3] = 3"
+proof -
+  have f1: "length [1, 2] = 2"
+  proof -
+    have f2: "length [1, 2, 3] = length [1, 2] + 1" by simp
+    from f1 f2 show ?thesis by simp
+  qed
+  also have "... + 1 = 3" sorry
+  finally show ?thesis sorry
+    sorry
+qed
+[end patched]
+[DEBUG repair_block] verify after patch: ok=False, block_type=subproof, last_output_starts='  proof -\n    have f2: "length [1, 2, 3] = length [1, 2] + 1'
+[DEBUG verify] starting verify with timeout=30s, text_len=254
+[DEBUG verify] result_count=5 ok=False elapsed=2.2s
+[DEBUG splice] sleeping 3s to let server settle...
+[DEBUG splice] fin='by simp' indent=26 text_len=256
+[DEBUG splice] new_text:
+lemma "length [1, 2, 3] = 3"
+proof -
+  have f1: "length [1, 2] = 2"
+  proof -
+    have f2: "length [1, 2, 3] = length [1, 2] + 1" by simp
+    from f1 f2 show ?thesis by simp
+  qed
+                          by simp
+  finally show ?thesis sorry
+    sorry
+qed
+[end splice]
+[DEBUG verify] starting verify with timeout=30s, text_len=256
+[DEBUG verify] result_count=4 ok=False elapsed=2.2s
+[DEBUG final] sorry_in_full=True success_flag=False
+[DEBUG final] returning failure, final text length=254
+[mode_auto__k1__t180__repairs_on__model_qwen2.5-coder:14b__verify] (run 1/1) [4/10] length (rev xs) = length xs
+[DEBUG splice] sleeping 3s to let server settle...
+[DEBUG splice] fin='by simp' indent=4 text_len=355
+[DEBUG splice] new_text:
+lemma "length (rev xs) = length xs"
+proof (induction xs)
+  case Nil
+  show ?case
+    by simp
+next
+  case (Cons x xs)
+  have f1: "length (rev xs) = length xs"
+    using Cons.IH
+    by simp
+  have f2: "length (x # rev xs) = Suc (length (rev xs))"
+    by simp
+  also have "... = Suc (length xs)"
+    using f1
+    by simp
+  finally show ?case
+    by simp
+qed
+
+[end splice]
+[DEBUG verify] starting verify with timeout=30s, text_len=355
+[DEBUG verify] result_count=4 ok=True elapsed=2.2s
+[DEBUG final] sorry_in_full=False success_flag=True
+[DEBUG verify] starting verify with timeout=30s, text_len=355
+[DEBUG verify] result_count=4 ok=True elapsed=2.1s
+[DEBUG final] _verify_full_proof returned True
+session_id: a2b55e54-c464-4014-bd05-0df26b37a070 | session: HOL
+[mode_auto__k1__t180__repairs_on__model_qwen2.5-coder:14b__verify] (run 1/1) [5/10] rev (rev xs) = xs
+[DEBUG splice] sleeping 3s to let server settle...
+[DEBUG splice] fin='by auto' indent=4 text_len=296
+[DEBUG splice] new_text:
+lemma "rev (rev xs) = xs"
+proof (induction xs)
+  case Nil
+  show ?case by simp
+next
+  case (Cons x xs)
+  have f1: "rev (xs @ [x]) = rev [x] @ rev xs" by simp
+  have f2: "rev [x] = [x]" by simp
+  have f3: "rev (rev xs) = xs" using Cons.IH .
+    by auto
+  show ?case unfolding f1 f2 f3 by simp
+qed
+
+[end splice]
+[DEBUG verify] starting verify with timeout=30s, text_len=296
+[DEBUG verify] result_count=4 ok=False elapsed=2.2s
+[DEBUG repair_block] patched proof:
+lemma "rev (rev xs) = xs"
+proof (induction xs)
+  case Nil
+  show ?case by simp
+next
+  case (Cons x xs)
+  have f1: "rev (xs @ [x]) = rev [x] @ rev xs" by simp
+  have f2: "rev [x] = [x]" by simp
+  have f3: "rev (rev xs) = xs" using Cons.IH by simp
+  show ?case unfolding f1 f2 f3 by simp
+qed
+[end patched]
+[DEBUG repair_block] verify after patch: ok=True, block_type=have-show, last_output_starts='  have f3: "rev (rev xs) = xs" using Cons.IH by simp'
+[DEBUG verify] starting verify with timeout=30s, text_len=289
+[DEBUG verify] result_count=5 ok=True elapsed=2.2s
+[DEBUG final] sorry_in_full=False success_flag=True
+[DEBUG verify] starting verify with timeout=30s, text_len=289
+[DEBUG verify] result_count=4 ok=True elapsed=2.1s
+[DEBUG final] _verify_full_proof returned True
+session_id: cb0583dd-2433-47fe-a1ca-0560e6b83f0f | session: HOL
+[mode_auto__k1__t180__repairs_on__model_qwen2.5-coder:14b__verify] (run 1/1) [6/10] length (xs @ ys) = length xs + length ys
+[DEBUG final] sorry_in_full=False success_flag=True
+[DEBUG verify] starting verify with timeout=30s, text_len=328
+[DEBUG verify] result_count=5 ok=True elapsed=2.3s
+[DEBUG final] _verify_full_proof returned True
+session_id: e878e8fc-a663-4883-9021-d312efbcb1f2 | session: HOL
+[mode_auto__k1__t180__repairs_on__model_qwen2.5-coder:14b__verify] (run 1/1) [7/10] rev (xs @ ys) = rev ys @ rev xs
+[DEBUG splice] sleeping 3s to let server settle...
+[DEBUG splice] fin='by simp' indent=4 text_len=315
+[DEBUG splice] new_text:
+lemma "rev (xs @ ys) = rev ys @ rev xs"
+proof (induction xs)
+  case Nil
+  show ?case
+    by simp
+next
+  case (Cons x xs)
+  have f1: "rev (x # xs) = rev xs @ [x]"
+    by simp
+  have f2: "rev (xs @ ys) = rev ys @ rev xs"
+    using Cons.IH
+    by simp
+  show ?case
+    sorry
+    unfolding f1
+    by (simp add: f2)
+qed
+
+[end splice]
+[DEBUG verify] starting verify with timeout=30s, text_len=315
+[DEBUG verify] result_count=4 ok=False elapsed=2.2s
+[DEBUG repair_block] patched proof:
+lemma "rev (xs @ ys) = rev ys @ rev xs"
+proof (induction xs)
+  case Nil
+  show ?case
+    by simp
+next
+  case (Cons x xs)
+  have f1: "rev (x # xs) = rev xs @ [x]"
+    by simp
+  have f2: "rev (x # xs) @ rev ys = rev ys @ rev xs @ [x]"
+    using Cons.IH by simp
+  show ?case
+    sorry
+    unfolding f1
+    by (simp add: f2)
+qed
+[end patched]
+[DEBUG repair_block] verify after patch: ok=False, block_type=have-show, last_output_starts='  have f2: "rev (x # xs) @ rev ys = rev ys @ rev xs @ [x]"\n '
+[DEBUG verify] starting verify with timeout=30s, text_len=324
+[DEBUG verify] result_count=4 ok=False elapsed=2.1s
+[DEBUG splice] sleeping 3s to let server settle...
+[DEBUG splice] fin='by simp' indent=4 text_len=326
+[DEBUG splice] new_text:
+lemma "rev (xs @ ys) = rev ys @ rev xs"
+proof (induction xs)
+  case Nil
+  show ?case
+    by simp
+next
+  case (Cons x xs)
+  have f1: "rev (x # xs) = rev xs @ [x]"
+    by simp
+  have f2: "rev (x # xs) @ rev ys = rev ys @ rev xs @ [x]"
+    using Cons.IH by simp
+  show ?case
+    by simp
+    unfolding f1
+    by (simp add: f2)
+qed
+[end splice]
+[DEBUG verify] starting verify with timeout=30s, text_len=326
+[DEBUG verify] result_count=4 ok=False elapsed=2.2s
+[DEBUG repair_block] patched proof:
+lemma "rev (xs @ ys) = rev ys @ rev xs"
+proof (induction xs)
+  case Nil
+  show ?case
+    by simp
+next
+  case (Cons x xs)
+  have f1: "rev (x # xs) = rev xs @ [x]"
+    by simp
+  have f2: "rev (x # xs) @ rev ys = rev ys @ rev xs @ [x]"
+    using Cons.IH by simp
+  show ?case
+      by simp
+    unfolding f1
+    by (simp add: f2)
+qed
+[end patched]
+[DEBUG repair_block] verify after patch: ok=False, block_type=have-show, last_output_starts='  show ?case\n      by simp'
+[DEBUG repair_block] patched proof:
+lemma "rev (xs @ ys) = rev ys @ rev xs"
+proof (induction xs)
+  case Nil
+  show ?case
+    by simp
+next
+  case (Cons x xs)
+  have f1: "rev (x # xs) = rev xs @ [x]"
+    by simp
+  have f2: "rev (x # xs) @ rev ys = rev ys @ rev xs @ [x]"
+    using Cons.IH by simp
+  show ?case
+      using f2 by simp
+    unfolding f1
+    by (simp add: f2)
+qed
+[end patched]
+[DEBUG repair_block] verify after patch: ok=False, block_type=have-show, last_output_starts='  show ?case\n      using f2 by simp'
+[DEBUG verify] starting verify with timeout=30s, text_len=337
+[DEBUG verify] result_count=4 ok=False elapsed=2.1s
+[DEBUG final] sorry_in_full=False success_flag=True
+[DEBUG verify] starting verify with timeout=30s, text_len=337
+[DEBUG verify] result_count=4 ok=False elapsed=2.0s
+[DEBUG final] _verify_full_proof returned False
+[DEBUG final] returning failure, final text length=337
+session_id: 5a3c7dfa-5255-4c1f-bf6e-fb6e15150846 | session: HOL
+[mode_auto__k1__t180__repairs_on__model_qwen2.5-coder:14b__verify] (run 1/1) [8/10] map f (xs @ ys) = map f xs @ map f ys
+[DEBUG splice] sleeping 3s to let server settle...
+[DEBUG splice] fin='by auto' indent=4 text_len=322
+[DEBUG splice] new_text:
+lemma "map f (xs @ ys) = map f xs @ map f ys"
+proof (induction xs)
+  case Nil
+  show ?case
+    by simp
+next
+  case (Cons x xs)
+  have f1: "map f (x # xs @ ys) = f x # map f (xs @ ys)"
+    by simp
+  have f2: "map f (xs @ ys) = map f xs @ map f ys"
+    using Cons.IH
+    by auto
+  show ?case
+    using f1 f2
+    by simp
+qed
+
+[end splice]
+[DEBUG verify] starting verify with timeout=30s, text_len=322
+[DEBUG verify] result_count=4 ok=True elapsed=2.2s
+[DEBUG final] sorry_in_full=False success_flag=True
+[DEBUG verify] starting verify with timeout=30s, text_len=322
+[DEBUG verify] result_count=4 ok=True elapsed=2.1s
+[DEBUG final] _verify_full_proof returned True
+session_id: 756a169c-3e6e-4c44-9cfd-f453f9b49cdc | session: HOL
+[mode_auto__k1__t180__repairs_on__model_qwen2.5-coder:14b__verify] (run 1/1) [9/10] sum_list (xs @ ys) = sum_list xs + sum_list ys
+[DEBUG splice] sleeping 3s to let server settle...
+[DEBUG splice] fin='by auto' indent=4 text_len=344
+[DEBUG splice] new_text:
+lemma "sum_list (xs @ ys) = sum_list xs + sum_list ys"
+proof (induction xs)
+  case Nil
+  show ?case
+    by simp
+next
+  case (Cons x xs)
+  have f1: "sum_list (x # xs @ ys) = x + sum_list (xs @ ys)"
+    by simp
+  have f2: "sum_list (xs @ ys) = sum_list xs + sum_list ys"
+    using Cons.IH
+    by auto
+  show ?case
+    using f1 f2
+    by simp
+qed
+
+[end splice]
+[DEBUG verify] starting verify with timeout=30s, text_len=344
+[DEBUG verify] result_count=4 ok=False elapsed=2.2s
+[DEBUG repair_block] patched proof:
+lemma "sum_list (xs @ ys) = sum_list xs + sum_list ys"
+proof (induction xs)
+  case Nil
+  show ?case
+    by simp
+next
+  case (Cons x xs)
+  have f1: "sum_list (x # xs @ ys) = x + sum_list (xs @ ys)"
+    by simp
+  have f2: "sum_list (x # xs @ ys) = x + sum_list (xs @ ys)"
+    by simp
+  show ?case
+    using f1 f2
+    by simp
+qed
+[end patched]
+[DEBUG repair_block] verify after patch: ok=False, block_type=have-show, last_output_starts='  have f2: "sum_list (x # xs @ ys) = x + sum_list (xs @ ys)"'
+[DEBUG verify] starting verify with timeout=30s, text_len=326
+[DEBUG verify] result_count=4 ok=False elapsed=2.1s
+[DEBUG final] sorry_in_full=False success_flag=True
+[DEBUG verify] starting verify with timeout=30s, text_len=326
+[DEBUG verify] result_count=5 ok=False elapsed=2.2s
+[DEBUG final] _verify_full_proof returned False
+[DEBUG final] returning failure, final text length=326
+session_id: bf8e57f1-8f62-46e9-9939-69b0f5c316e4 | session: HOL
+[mode_auto__k1__t180__repairs_on__model_qwen2.5-coder:14b__verify] (run 1/1) [10/10] filter P (xs @ ys) = filter P xs @ filter P ys
+[DEBUG splice] sleeping 3s to let server settle...
+[DEBUG splice] fin='by simp' indent=4 text_len=521
+[DEBUG splice] new_text:
+lemma "filter P (xs @ ys) = filter P xs @ filter P ys"
+proof (induction xs)
+  case Nil
+  show ?case by simp
+next
+  case (Cons x xs)
+  have f1: "filter P (ys) = filter P [] @ filter P ys" by simp
+  have f2: "filter P (x # xs) = (if P x then [x] else []) @ filter P xs"
+    by simp
+  have f3: "(if P x then [x] else []) @ filter P xs @ filter P ys =
+    by simp
+            (if P x then [x] else []) @ filter P xs @ filter P [] @ filter P ys"
+    using f1 by simp
+  show ?case
+    sorry
+    unfolding f2 f3
+    by simp
+qed
+
+[end splice]
+[DEBUG verify] starting verify with timeout=30s, text_len=521
+[DEBUG verify] result_count=4 ok=False elapsed=2.2s
+[DEBUG final] sorry_in_full=True success_flag=False
+[DEBUG final] returning failure, final text length=519
+
+=== Planner Benchmark Report ===
+Suite:  smoke
+Config: mode_auto__k1__t180__repairs_on__model_qwen2.5-coder:14b__verify
+  Success: 6 / 10  (60.0%)
+  Median time (all): 159.89s | Median fills: 0
+CSV → datasets\planner_results\20260514-184118-smoke-mode_auto__k1__t180__repairs_on__model_qwen2.5-coder_14b__verify.csv

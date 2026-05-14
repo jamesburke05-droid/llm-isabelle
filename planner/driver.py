@@ -672,18 +672,24 @@ def plan_and_fill(goal: str, model: Optional[str] = None, timeout: int = 100, *,
                     key = (hole_key, start_stage)
                     stage_tries[key] = stage_tries.get(key, 0) + 1
 
-                    STAGE1_CAP = 2
-                    STAGE2_CAP = 3
+                    # CHANGED (F): lower STAGE1_CAP from 2 to 1 so we escalate
+                    # to Stage 2 (case/subproof block repair) after a single
+                    # unverified Stage 1 attempt. Hou's lecture (Week 9) described
+                    # the design as local -> sub-proof -> whole-proof; previously
+                    # Stage 1 partial-progress would be rescued by opening
+                    # sorries before Stage 2 ever got a chance to fire.
+                    STAGE1_CAP = 1
+                    STAGE2_CAP = 2
 
                     should_escalate = False
                     if start_stage == 1 and stage_tries[key] >= STAGE1_CAP:
                         should_escalate = True
                         if trace:
-                            print(f"[repair] Stage 1 cap ({STAGE1_CAP}) reached. Escalating to stage 2...")
+                            print(f"[repair] Stage 1 unverified after {stage_tries[key]} attempt(s); ESCALATING to Stage 2 (sub-proof repair)")
                     elif start_stage == 2 and stage_tries.get((hole_key, 2), 0) >= STAGE2_CAP:
                         should_escalate = True
                         if trace:
-                            print(f"[repair] Stage 2 cap ({STAGE2_CAP}) reached. Regenerating whole proof...")
+                            print(f"[repair] Stage 2 unverified after {stage_tries.get((hole_key, 2), 0)} attempt(s); ESCALATING to Stage 3 (whole-proof regeneration)")
 
                     if should_escalate:
                         if start_stage < 2:

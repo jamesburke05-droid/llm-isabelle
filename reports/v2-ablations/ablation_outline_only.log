@@ -1,0 +1,21 @@
+server "planner" = 127.0.0.1:59386 (password "6abb1668-9f8b-4c60-b703-4e3665d79d3c")
+session_id: a076b89e-63f2-4872-a6df-14bb0d4b4a17 | session: HOL
+
+=== Planner suite: smoke (10 goals) ===
+[mode_outline__k1__t180__repairs_on__model_qwen2.5-coder:14b__verify] (run 1/1) [1/10] True
+[mode_outline__k1__t180__repairs_on__model_qwen2.5-coder:14b__verify] (run 1/1) [2/10] 1 + 1 = (2::nat)
+[mode_outline__k1__t180__repairs_on__model_qwen2.5-coder:14b__verify] (run 1/1) [3/10] length [1, 2, 3] = 3
+[mode_outline__k1__t180__repairs_on__model_qwen2.5-coder:14b__verify] (run 1/1) [4/10] length (rev xs) = length xs
+[mode_outline__k1__t180__repairs_on__model_qwen2.5-coder:14b__verify] (run 1/1) [5/10] rev (rev xs) = xs
+[mode_outline__k1__t180__repairs_on__model_qwen2.5-coder:14b__verify] (run 1/1) [6/10] length (xs @ ys) = length xs + length ys
+[mode_outline__k1__t180__repairs_on__model_qwen2.5-coder:14b__verify] (run 1/1) [7/10] rev (xs @ ys) = rev ys @ rev xs
+[mode_outline__k1__t180__repairs_on__model_qwen2.5-coder:14b__verify] (run 1/1) [8/10] map f (xs @ ys) = map f xs @ map f ys
+[mode_outline__k1__t180__repairs_on__model_qwen2.5-coder:14b__verify] (run 1/1) [9/10] sum_list (xs @ ys) = sum_list xs + sum_list ys
+[mode_outline__k1__t180__repairs_on__model_qwen2.5-coder:14b__verify] (run 1/1) [10/10] filter P (xs @ ys) = filter P xs @ filter P ys
+
+=== Planner Benchmark Report ===
+Suite:  smoke
+Config: mode_outline__k1__t180__repairs_on__model_qwen2.5-coder:14b__verify
+  Success: 10 / 10  (100.0%)
+  Median time (all): 99.43s | Median fills: 0
+CSV → datasets\planner_results\20260514-185910-smoke-mode_outline__k1__t180__repairs_on__model_qwen2.5-coder_14b__verify.csv
