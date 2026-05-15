@@ -35,6 +35,103 @@ def _extract_session_id(responses) -> str:
     raise RuntimeError(f"Could not extract session_id from response: {responses!r}")
 
 
+# ---------------------------------------------------------------------------
+# P-1: One-shot pre-pass before outline generation
+# ---------------------------------------------------------------------------
+_INDUCTIVE_VAR_RE = re.compile(r"\b([a-z][a-zA-Z0-9_]{0,9})\b")
+_NON_INDUCTIVE_TOKENS = {
+    "True", "False", "if", "then", "else", "let", "in", "case", "of",
+    "do", "fun", "lemma", "by", "and", "or", "not", "the", "some",
+    "lambda", "Suc", "rev", "length", "map", "filter", "concat",
+    "hd", "tl", "take", "drop", "sum_list", "fold", "foldr", "foldl",
+    "min", "max", "abs", "fst", "snd", "id", "comp",
+}
+
+def _free_inductive_vars(goal: str):
+    """Heuristic extractor of free variables likely to be inductive.
+
+    Looks for lowercase identifiers in the goal text that are not in a
+    blocklist of common function/keyword names. The order of returned
+    vars reflects appearance in the goal (which is usually the order a
+    human would induct on).
+    """
+    seen = []
+    for m in _INDUCTIVE_VAR_RE.finditer(goal):
+        v = m.group(1)
+        if v in _NON_INDUCTIVE_TOKENS:
+            continue
+        if v.startswith("_"):
+            continue
+        if v not in seen:
+            seen.append(v)
+    return seen
+
+def _try_oneshot_proof(isa, session: str, goal: str, *,
+                       budget_s: float = 60.0,
+                       per_attempt_s: int = 8,
+                       trace: bool = False):
+    """Try a small set of one-shot proofs before generating an outline.
+
+    Returns (proof_text, True) on the first success, or (None, False) if
+    no pattern works within the budget. Each verify uses the same path
+    as the rest of the pipeline (_verify_full_proof), so a True return
+    means the result is genuinely verified.
+    """
+    t0 = time.monotonic()
+    def left() -> float: return budget_s - (time.monotonic() - t0)
+
+    # Build the candidate list. Trivial tactics first, then induction patterns.
+    candidates = []
+    for tac in ["by simp", "by auto", "by (simp add: ac_simps)",
+                "by (simp add: algebra_simps)", "by linarith",
+                "by force", "by blast",
+                # P-1.1: library-lemma metis patterns. Each names a single
+                # HOL library lemma; metis will succeed when the goal is
+                # an instance of (or trivially derivable from) that lemma.
+                # These cover the most common list / map / rev / length
+                # identities; rare and easy to extend.
+                "by (metis rev_map)",
+                "by (metis map_append)",
+                "by (metis rev_append)",
+                "by (metis append_assoc)",
+                "by (metis length_rev)",
+                "by (metis length_map)",
+                "by (metis length_append)",
+                "by (metis rev_rev_ident)"]:
+        candidates.append(f'lemma "{goal}"\n  {tac}')
+
+    fv = _free_inductive_vars(goal)
+    if trace and fv:
+        print(f"[oneshot] free vars: {fv}")
+    if fv:
+        v0 = fv[0]
+        for inner in ["auto", "simp_all"]:
+            candidates.append(f'lemma "{goal}"\n  by (induct {v0}) {inner}')
+        if len(fv) >= 2:
+            others = " ".join(fv[1:])
+            for inner in ["auto", "simp_all"]:
+                candidates.append(f'lemma "{goal}"\n  by (induct {v0} arbitrary: {others}) {inner}')
+
+    for idx, cand in enumerate(candidates):
+        if left() <= 0:
+            if trace:
+                print(f"[oneshot] budget exhausted after {idx} attempts")
+            break
+        try:
+            ok = _verify_full_proof(isa, session, cand)
+        except (TimeoutError, _FuturesTimeout, ValueError):
+            ok = None
+        if ok is True:
+            if trace:
+                short = cand.replace("\n  ", " | ")
+                print(f"[oneshot] PROVED: {short}")
+            return cand, True
+    if trace:
+        print(f"[oneshot] no pattern matched ({len(candidates)} attempts)")
+    return None, False
+
+
+
 def _hole_fingerprint(full_text: str, span: tuple[int, int], context: int = 80) -> str:
     """Stable key for a hole: hash a small window around the 'sorry'."""
     s, e = span
@@ -498,6 +595,11 @@ def plan_and_fill(goal: str, model: Optional[str] = None, timeout: int = 100, *,
         isa, session, proc = isa2, session2, proc2
 
     try:
+        # P-1: try one-shot proofs before invoking the outline LLM
+        oneshot_text, oneshot_ok = _try_oneshot_proof(isa, session, goal, trace=trace)
+        if oneshot_ok:
+            return PlanAndFillResult(True, oneshot_text, [], [])
+
         # Generate outline
         if legacy_single_outline:
             full = propose_isar_skeleton(goal, model=model, temp=0.35, force_outline=(mode == "outline")).text
