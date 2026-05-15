@@ -1,0 +1,51 @@
+goal,success,elapsed_s,mode,model,outline_chars,fills,failed_holes,had_sorry,verified_ok
+True,True,197.2988,auto,qwen2.5-coder:14b,125,0,0,False,True
+1 + 1 = (2::nat),True,94.1315,auto,qwen2.5-coder:14b,133,0,0,False,True
+"length [1, 2, 3] = 3",True,190.6139,auto,qwen2.5-coder:14b,439,0,0,False,True
+length (rev xs) = length xs,True,135.9477,auto,qwen2.5-coder:14b,382,2,0,False,True
+rev (rev xs) = xs,True,95.6706,auto,qwen2.5-coder:14b,187,0,0,False,True
+length (xs @ ys) = length xs + length ys,True,101.6130,auto,qwen2.5-coder:14b,337,0,0,False,True
+rev (xs @ ys) = rev ys @ rev xs,True,103.7837,auto,qwen2.5-coder:14b,351,0,0,False,True
+map f (xs @ ys) = map f xs @ map f ys,True,118.8859,auto,qwen2.5-coder:14b,353,1,0,False,True
+sum_list (xs @ ys) = sum_list xs + sum_list ys,False,247.4728,auto,qwen2.5-coder:14b,516,0,1,False,False
+filter P (xs @ ys) = filter P xs @ filter P ys,False,263.8784,auto,qwen2.5-coder:14b,820,0,1,False,False
+True,True,147.8800,auto,qwen2.5-coder:14b,117,0,0,False,True
+1 + 1 = (2::nat),True,94.4825,auto,qwen2.5-coder:14b,133,0,0,False,True
+"length [1, 2, 3] = 3",True,98.3460,auto,qwen2.5-coder:14b,175,0,0,False,True
+length (rev xs) = length xs,True,114.0259,auto,qwen2.5-coder:14b,355,1,0,False,True
+rev (rev xs) = xs,True,201.3371,auto,qwen2.5-coder:14b,339,0,0,False,True
+length (xs @ ys) = length xs + length ys,True,122.5833,auto,qwen2.5-coder:14b,330,1,0,False,True
+rev (xs @ ys) = rev ys @ rev xs,True,121.4158,auto,qwen2.5-coder:14b,294,1,0,False,True
+map f (xs @ ys) = map f xs @ map f ys,True,168.3711,auto,qwen2.5-coder:14b,353,0,0,False,True
+sum_list (xs @ ys) = sum_list xs + sum_list ys,False,245.4595,auto,qwen2.5-coder:14b,387,0,1,False,False
+filter P (xs @ ys) = filter P xs @ filter P ys,True,102.2674,auto,qwen2.5-coder:14b,341,0,0,False,True
+True,True,148.5090,auto,qwen2.5-coder:14b,117,0,0,False,True
+1 + 1 = (2::nat),True,93.9688,auto,qwen2.5-coder:14b,127,0,0,False,True
+"length [1, 2, 3] = 3",False,198.7054,auto,qwen2.5-coder:14b,482,0,0,False,False
+length (rev xs) = length xs,True,108.4502,auto,qwen2.5-coder:14b,336,0,0,False,True
+rev (rev xs) = xs,True,102.5219,auto,qwen2.5-coder:14b,290,0,0,False,True
+length (xs @ ys) = length xs + length ys,True,137.6479,auto,qwen2.5-coder:14b,312,0,0,False,True
+rev (xs @ ys) = rev ys @ rev xs,True,128.3157,auto,qwen2.5-coder:14b,304,1,0,False,True
+map f (xs @ ys) = map f xs @ map f ys,True,109.5833,auto,qwen2.5-coder:14b,388,0,0,False,True
+sum_list (xs @ ys) = sum_list xs + sum_list ys,False,182.8076,auto,qwen2.5-coder:14b,283,0,0,False,False
+filter P (xs @ ys) = filter P xs @ filter P ys,True,120.3415,auto,qwen2.5-coder:14b,389,1,0,False,True
+True,True,145.6685,auto,qwen2.5-coder:14b,117,0,0,False,True
+1 + 1 = (2::nat),True,92.0330,auto,qwen2.5-coder:14b,127,0,0,False,True
+"length [1, 2, 3] = 3",True,102.9206,auto,qwen2.5-coder:14b,239,0,0,False,True
+length (rev xs) = length xs,True,116.1644,auto,qwen2.5-coder:14b,357,1,0,False,True
+rev (rev xs) = xs,True,99.9448,auto,qwen2.5-coder:14b,290,0,0,False,True
+length (xs @ ys) = length xs + length ys,True,180.2545,auto,qwen2.5-coder:14b,358,0,0,False,True
+rev (xs @ ys) = rev ys @ rev xs,True,120.6998,auto,qwen2.5-coder:14b,294,1,0,False,True
+map f (xs @ ys) = map f xs @ map f ys,True,105.0263,auto,qwen2.5-coder:14b,316,0,0,False,True
+sum_list (xs @ ys) = sum_list xs + sum_list ys,False,187.1770,auto,qwen2.5-coder:14b,359,0,0,False,False
+filter P (xs @ ys) = filter P xs @ filter P ys,True,186.7586,auto,qwen2.5-coder:14b,423,0,0,False,True
+True,False,246.7741,auto,qwen2.5-coder:14b,198,0,0,False,False
+1 + 1 = (2::nat),False,182.4039,auto,qwen2.5-coder:14b,129,0,0,False,False
+"length [1, 2, 3] = 3",False,222.9849,auto,qwen2.5-coder:14b,484,0,0,False,False
+length (rev xs) = length xs,True,101.4423,auto,qwen2.5-coder:14b,380,1,0,False,True
+rev (rev xs) = xs,True,196.9596,auto,qwen2.5-coder:14b,327,0,0,False,True
+length (xs @ ys) = length xs + length ys,True,120.7340,auto,qwen2.5-coder:14b,332,1,0,False,True
+rev (xs @ ys) = rev ys @ rev xs,True,152.2429,auto,qwen2.5-coder:14b,294,3,0,False,True
+map f (xs @ ys) = map f xs @ map f ys,True,121.1565,auto,qwen2.5-coder:14b,305,1,0,False,True
+sum_list (xs @ ys) = sum_list xs + sum_list ys,False,188.5013,auto,qwen2.5-coder:14b,359,0,0,False,False
+filter P (xs @ ys) = filter P xs @ filter P ys,True,163.8510,auto,qwen2.5-coder:14b,378,0,0,False,True
