@@ -280,10 +280,18 @@ def _verify_with_auto_restart(isabelle, session_id: str, isar_text: str) -> Tupl
     retry verification once, then tear the temp server down.
     """
     ok, details = _verify_full_isar(isabelle, session_id, isar_text)
-    if ok or not _is_transport_error(details):
+    if ok:
         return ok, details
 
-    # Transport error: retry with a fresh, temporary server
+    # P-5: retry in a fresh session on EITHER transport error OR plain verify failure.
+    # Motivation: the bench's persistent session accumulates state across goals; we
+    # have observed valid simp-closable proofs being rejected by the bench session
+    # while the planner's per-call session accepts them. A fresh-session retry
+    # disambiguates session contamination from genuine proof failure.
+    if not (_is_transport_error(details) or details in ("", "verify_failed") or "Bad context" in (details or "")):
+        return ok, details
+
+    # Transient or session-pollution case: retry with a fresh, temporary server
     try:
         server_info, proc = start_isabelle_server(name="planner-verify-retry", log_file="planner_verify_retry.log")
         client = get_isabelle_client(server_info)
