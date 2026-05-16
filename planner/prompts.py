@@ -207,6 +207,24 @@ next
 qed
 
 lemma "{goal}"
+proof (induction xs arbitrary: ys)
+  case Nil
+  have f1: "..."
+    sorry
+  show ?case
+    using f1
+    sorry
+next
+  case (Cons x xs)
+  have f1: "..."
+    using Cons.IH
+    sorry
+  show ?case
+    using f1
+    sorry
+qed
+
+lemma "{goal}"
 proof (cases b)
   case True
   have f1: "…"

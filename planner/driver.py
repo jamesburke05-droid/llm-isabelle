@@ -231,9 +231,38 @@ def _fill_one_hole(isabelle, session: str, full_text: str, hole_span: Tuple[int,
     if applies_from_keys:
         applies = applies or applies_from_keys  # prefer explicit list if steps were empty
 
-    fin = next((s for s in steps if s.startswith("by ") or s.strip() == "done"), "")
+    # B1: prefer simpler tactics over complex ones when multiple candidates are
+    # available. Order: done < by simp < by auto < by linarith < by force 
+    # by blast < by fastforce < by arith < by (simp add: ...) < by metis < by smt.
+    # Falls back to lexical order for unknown tactics. This is a stable sort, so
+    # the prove_goal-suggested ranking is preserved within each priority bucket.
+    def _fin_priority(s):
+        s = (s or "").strip()
+        if s == "done": return 0
+        if s == "by simp": return 1
+        if s == "by auto": return 2
+        if s == "by linarith": return 3
+        if s == "by force": return 4
+        if s == "by blast": return 5
+        if s == "by fastforce": return 6
+        if s == "by arith": return 7
+        if s.startswith("by (simp add:"): return 8
+        if s.startswith("by (auto"): return 9
+        if s.startswith("by (metis"): return 10
+        if s.startswith("by metis"): return 10
+        if s.startswith("by (smt"): return 11
+        if s.startswith("by smt"): return 11
+        if s.startswith("by ("): return 12  # other parenthesised tactics
+        if s.startswith("by "): return 13   # any other by ...
+        return 99
+
+    _step_fins = [s for s in steps if s.startswith("by ") or s.strip() == "done"]
+    _step_fins_sorted = sorted(_step_fins, key=_fin_priority)
+    fin = _step_fins_sorted[0] if _step_fins_sorted else ""
     if not fin:
-        fin = next((x for x in fin_candidates if isinstance(x, str) and (x.startswith("by ") or x.strip() == "done")), "")
+        _cand_fins = [x for x in fin_candidates if isinstance(x, str) and (x.startswith("by ") or x.strip() == "done")]
+        _cand_fins_sorted = sorted(_cand_fins, key=_fin_priority)
+        fin = _cand_fins_sorted[0] if _cand_fins_sorted else ""
 
     # If neither steps nor recognized finishers were returned, report no-steps
     if not (applies or fin):
