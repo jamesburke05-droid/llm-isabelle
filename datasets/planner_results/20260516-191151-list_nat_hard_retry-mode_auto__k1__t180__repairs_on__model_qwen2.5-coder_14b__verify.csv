@@ -1,0 +1,4 @@
+goal,success,elapsed_s,mode,model,outline_chars,fills,failed_holes,had_sorry,verified_ok
+distinct xs \<Longrightarrow> distinct (rev xs),True,119.1194,auto,qwen2.5-coder:14b,65,0,0,False,False
+set (rev xs) = set xs,False,91.3614,auto,qwen2.5-coder:14b,39,0,0,False,False
+sum_list (map (\<lambda>_. (1::nat)) xs) = length xs,False,334.1307,auto,qwen2.5-coder:14b,458,0,0,True,True
