@@ -29,6 +29,15 @@ def _extract_session_id(responses) -> str:
         return responses  # older client versions returned a str directly
     for r in (responses or []):
         body = getattr(r, "response_body", None)
+        # P-4: detect SessionStartErrorResponse (response_type=FAILED) and
+        # raise a transient-class exception so _safe_plan_and_fill retries.
+        rtype = getattr(r, "response_type", None)
+        rtype_name = getattr(rtype, "name", str(rtype))
+        if rtype_name == "FAILED":
+            kind = getattr(body, "kind", None)
+            msg = getattr(body, "message", None) or "session start failed"
+            if kind == "error":
+                raise ConnectionRefusedError(f"Isabelle session start failed: {msg}")
         sid = getattr(body, "session_id", None) if body is not None else None
         if sid:
             return sid
