@@ -12,3 +12,7 @@ logs/*.log
 # Third-party benchmarks (cloned, not vendored)
 datasets/external/
 miniF2F/
+# Windows Explorer duplicate-file artifacts
+*- Copy.py
+*- Copy.txt
+*- Copy.sh
