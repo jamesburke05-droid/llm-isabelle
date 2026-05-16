@@ -320,28 +320,42 @@ def _safe_plan_and_fill(*, goal: str, model: Optional[str], cfg) -> Tuple[Option
     Run planner.plan_and_fill and trap any provider/network exceptions.
     Returns (res, err_text). When res is None, the caller should mark failure but continue the run.
     """
-    try:             
-        res = plan_and_fill(
-            goal,
-            model=model,
-            timeout=cfg.timeout,
-            mode=cfg.mode,
-            outline_k=(cfg.k),
-            outline_temps=cfg.temps,
-            legacy_single_outline=(cfg.k == 1),
-            repairs=cfg.repairs,
-            max_repairs_per_hole=cfg.max_repairs_per_hole,
-            trace=cfg.trace,
-            priors_path=cfg.priors,
-            context_hints=cfg.context_hints,
-            lib_templates=cfg.lib_templates,
-            alpha=cfg.alpha, beta=cfg.beta, gamma=cfg.gamma,
-            hintlex_path=cfg.hintlex, hintlex_top=cfg.hintlex_top,
-        )
-        return res, ""
-    except Exception as e:
-        tb = "".join(traceback.format_exception_only(type(e), e)).strip()
-        return None, tb
+    # P-3: retry once on transient Ollama / network failures
+    _last_err = ""
+    for _attempt in range(2):
+        try:
+            res = plan_and_fill(
+                goal,
+                model=model,
+                timeout=cfg.timeout,
+                mode=cfg.mode,
+                outline_k=(cfg.k),
+                outline_temps=cfg.temps,
+                legacy_single_outline=(cfg.k == 1),
+                repairs=cfg.repairs,
+                max_repairs_per_hole=cfg.max_repairs_per_hole,
+                trace=cfg.trace,
+                priors_path=cfg.priors,
+                context_hints=cfg.context_hints,
+                lib_templates=cfg.lib_templates,
+                alpha=cfg.alpha, beta=cfg.beta, gamma=cfg.gamma,
+                hintlex_path=cfg.hintlex, hintlex_top=cfg.hintlex_top,
+            )
+            return res, ""
+        except Exception as e:
+            tb = "".join(traceback.format_exception_only(type(e), e)).strip()
+            _last_err = tb
+            _is_transient = any(s in tb for s in [
+                "500 Server Error", "ConnectionError", "ConnectionRefusedError",
+                "Internal Server Error", "ConnectionResetError", "ReadTimeout",
+                "BrokenPipe",
+            ])
+            if not _is_transient or _attempt == 1:
+                return None, tb
+            if cfg.trace:
+                print(f"[planner]   transient error on attempt {_attempt+1}, retrying after 3s: {tb[:120]}", flush=True)
+            time.sleep(3)
+    return None, _last_err
 
 # =============================================================================
 # BENCH
@@ -410,7 +424,7 @@ def _bench_run_one(
         outline_text = ""
         had_sorry = False
         success = False
-        verified_ok = True
+        verified_ok = False
         verify_details = f"[planner_error] {plan_err}"
         row = BenchRow(
             goal=goal,
