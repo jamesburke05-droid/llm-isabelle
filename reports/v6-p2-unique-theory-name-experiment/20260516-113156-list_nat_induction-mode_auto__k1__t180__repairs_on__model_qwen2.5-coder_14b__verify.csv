@@ -1,0 +1,21 @@
+goal,success,elapsed_s,mode,model,outline_chars,fills,failed_holes,had_sorry,verified_ok
+length (xs @ xs) = 2 * length xs,False,124.0758,auto,qwen2.5-coder:14b,50,0,0,False,False
+length (map f xs) = length xs,True,96.5805,auto,qwen2.5-coder:14b,47,0,0,False,True
+rev (map f xs) = map f (rev xs),True,110.1729,auto,qwen2.5-coder:14b,60,0,0,False,True
+filter (\<lambda>x. True) xs = xs,True,92.5254,auto,qwen2.5-coder:14b,51,0,0,False,True
+filter (\<lambda>x. False) xs = [],False,30.2265,auto,qwen2.5-coder:14b,0,0,0,False,True
+concat (map (\<lambda>x. [x]) xs) = xs,True,88.1359,auto,qwen2.5-coder:14b,56,0,0,False,True
+n + 0 = (n :: nat),True,91.1897,auto,qwen2.5-coder:14b,36,0,0,False,True
+0 + n = (n :: nat),True,91.0813,auto,qwen2.5-coder:14b,36,0,0,False,True
+Suc n = n + (1 :: nat),True,91.4344,auto,qwen2.5-coder:14b,40,0,0,False,True
+(n :: nat) * 0 = 0,True,91.3556,auto,qwen2.5-coder:14b,36,0,0,False,True
+length (rev xs) + length (rev ys) = length xs + length ys,False,18.4450,auto,qwen2.5-coder:14b,0,0,0,False,True
+sum_list (map f []) = (0 :: nat),False,90.4668,auto,qwen2.5-coder:14b,50,0,0,False,False
+sum_list (rev xs) = sum_list (xs :: nat list),True,90.1743,auto,qwen2.5-coder:14b,63,0,0,False,True
+map id xs = xs,True,88.6226,auto,qwen2.5-coder:14b,32,0,0,False,True
+map f (map g xs) = map (\<lambda>x. f (g x)) xs,True,89.3007,auto,qwen2.5-coder:14b,65,0,0,False,True
+take n xs @ drop n xs = xs,False,42.5282,auto,qwen2.5-coder:14b,0,0,0,False,True
+length (take n xs) \<le> length xs,True,64.4429,auto,qwen2.5-coder:14b,52,0,0,False,True
+xs @ [] = xs,False,88.7944,auto,qwen2.5-coder:14b,30,0,0,False,False
+[] @ xs = xs,True,87.8596,auto,qwen2.5-coder:14b,30,0,0,False,True
+hd (xs @ [x]) = (if xs = [] then x else hd xs),True,82.2386,auto,qwen2.5-coder:14b,64,0,0,False,True

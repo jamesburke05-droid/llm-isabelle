@@ -1,0 +1,15 @@
+distinct xs \<Longrightarrow> distinct (rev xs)
+xs \<noteq> [] \<Longrightarrow> hd xs # tl xs = xs
+filter P (filter Q xs) = filter (\<lambda>x. P x \<and> Q x) xs
+length (filter P xs) \<le> length xs
+set (rev xs) = set xs
+sum_list (xs @ ys) \<ge> sum_list xs
+\<forall>x \<in> set xs. P x \<Longrightarrow> list_all P xs
+length xs = length ys \<Longrightarrow> length (zip xs ys) = length xs
+foldr (#) xs [] = xs
+length (concat xss) = sum_list (map length xss)
+take (length xs) xs = xs
+xs @ ys = zs @ ws \<Longrightarrow> length xs = length zs \<Longrightarrow> xs = zs
+sum_list (map (\<lambda>_. (1::nat)) xs) = length xs
+distinct xs \<Longrightarrow> length (remdups xs) = length xs
+map f (filter P xs) = filter P (map f xs) \<Longrightarrow> (\<forall>x \<in> set xs. P (f x) = P x)
