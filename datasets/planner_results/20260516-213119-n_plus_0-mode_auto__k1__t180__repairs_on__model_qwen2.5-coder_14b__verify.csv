@@ -1,0 +1,2 @@
+goal,success,elapsed_s,mode,model,outline_chars,fills,failed_holes,had_sorry,verified_ok
+n + 0 = (n :: nat),False,120.2964,auto,qwen2.5-coder:14b,36,0,0,False,False
