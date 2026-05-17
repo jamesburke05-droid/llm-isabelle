@@ -1,0 +1,20 @@
+# miniF2F induction subset v2 - stretch dataset with assumption inlining
+# 
+# This is a follow-up to minif2f_induction.txt where we inline the assumptions
+# that the bench format previously could not express. We DO NOT add any
+# library-lemma hints here; that is left to a separate experiment.
+#
+# Three goals are modified vs v1:
+#   - Goal 3 (Bernoulli):   added (x::real) >= -1 as an antecedent
+#   - Goal 4 (fact growth): added (n::nat) > 3 as an antecedent
+#   - Goal 6 (Fermat):       added prime (p::nat) as an antecedent
+#
+# All other goals are identical to v1.
+(11::int) dvd (10^(n::nat) - (-1)^n)
+(12::int) dvd 4^((n::nat)+1) + 20
+(x::real) \<ge> -1 \<Longrightarrow> (1 + (n::nat) * x) \<le> (1 + x)^n
+(n::nat) > 3 \<Longrightarrow> fact n < n^(n - 1)
+(\<Sum> k<(n::nat). k^3) = (\<Sum> k<n. k)^2
+prime (p::nat) \<Longrightarrow> (p::nat) dvd (a^p - (a::int))
+(\<Prod> k \<in>{1..<(n::nat)+1}. (1 + 1 / 2^k)) < 5 / 2
+(\<Prod> k \<in> {1..<(n::nat)+1}. (1 + 1 / k^3)) \<le> 3 - 1 / n

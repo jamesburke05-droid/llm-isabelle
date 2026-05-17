@@ -249,6 +249,22 @@ proof -
   finally show ?thesis  using f2  sorry
 qed
 
+lemma "{goal}"
+proof (induction n)
+  case 0
+  show ?case
+    by simp
+next
+  case (Suc n)
+  have f1: "..."
+    using Suc.IH
+    sorry
+  also have "... = ..."
+    sorry
+  finally show ?case
+    sorry
+qed
+
 lemma "True"
   by simp
 
