@@ -1,0 +1,9 @@
+goal,success,elapsed_s,mode,model,outline_chars,fills,failed_holes,had_sorry,verified_ok
+(11::int) dvd (10^(n::nat) - (-1)^n),False,357.4875,auto,qwen2.5-coder:14b,533,0,0,True,True
+(12::int) dvd 4^((n::nat)+1) + 20,False,324.8512,auto,qwen2.5-coder:14b,442,0,0,True,True
+(x::real) \<ge> -1 \<Longrightarrow> (1 + (n::nat) * x) \<le> (1 + x)^n,False,261.7304,auto,qwen2.5-coder:14b,465,0,0,False,False
+(n::nat) > 3 \<Longrightarrow> fact n < n^(n - 1),False,315.9989,auto,qwen2.5-coder:14b,537,0,0,False,False
+(\<Sum> k<(n::nat). k^3) = (\<Sum> k<n. k)^2,False,248.3530,auto,qwen2.5-coder:14b,461,0,0,True,True
+prime (p::nat) \<Longrightarrow> (p::nat) dvd (a^p - (a::int)),False,210.4884,auto,qwen2.5-coder:14b,526,1,0,False,False
+(\<Prod> k \<in>{1..<(n::nat)+1}. (1 + 1 / 2^k)) < 5 / 2,False,836.8478,auto,qwen2.5-coder:14b,501,0,0,True,True
+(\<Prod> k \<in> {1..<(n::nat)+1}. (1 + 1 / k^3)) \<le> 3 - 1 / n,False,291.8687,auto,qwen2.5-coder:14b,525,0,0,True,True
