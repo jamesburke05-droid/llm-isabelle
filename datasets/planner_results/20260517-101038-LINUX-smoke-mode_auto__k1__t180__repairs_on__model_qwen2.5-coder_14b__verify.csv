@@ -1,0 +1,11 @@
+goal,success,elapsed_s,mode,model,outline_chars,fills,failed_holes,had_sorry,verified_ok
+True,True,13.1921,auto,qwen2.5-coder:14b,22,0,0,False,True
+1 + 1 = (2::nat),True,16.0946,auto,qwen2.5-coder:14b,34,0,0,False,True
+"length [1, 2, 3] = 3",True,16.8580,auto,qwen2.5-coder:14b,38,0,0,False,True
+length (rev xs) = length xs,True,16.0638,auto,qwen2.5-coder:14b,45,0,0,False,True
+rev (rev xs) = xs,True,15.7758,auto,qwen2.5-coder:14b,35,0,0,False,True
+length (xs @ ys) = length xs + length ys,True,16.5943,auto,qwen2.5-coder:14b,58,0,0,False,True
+rev (xs @ ys) = rev ys @ rev xs,True,16.0739,auto,qwen2.5-coder:14b,49,0,0,False,True
+map f (xs @ ys) = map f xs @ map f ys,True,16.0309,auto,qwen2.5-coder:14b,55,0,0,False,True
+sum_list (xs @ ys) = sum_list xs + sum_list ys,True,16.1086,auto,qwen2.5-coder:14b,64,0,0,False,True
+filter P (xs @ ys) = filter P xs @ filter P ys,True,16.6323,auto,qwen2.5-coder:14b,64,0,0,False,True
