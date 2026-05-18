@@ -1,0 +1,9 @@
+{
+  "type": "sbert",
+  "model_relpath": "encoder",
+  "normalize": true,
+  "base_model": "models/premises/encoder",
+  "epochs": 1,
+  "batch_size": 32,
+  "pairs": 42069
+}
