@@ -32,10 +32,11 @@ Key features:
 
 ## Table of Contents
 - [1. Installation](#1-installation)
-  - [1.1 Core prerequisites](#11-core-prerequisites)
-  - [1.2 Python setup](#12-python-setup)
-  - [1.3 Ollama (local LLMs)](#13-ollama-local-llms)
-  - [1.4 Gemini CLI (hosted Gemini models)](#14-gemini-cli-hosted-gemini-models)
+  - [1.1 Cloning the repository](#11-cloning-the-repository)
+  - [1.2 Core prerequisites](#12-core-prerequisites)
+  - [1.3 Python setup](#13-python-setup)
+  - [1.4 Ollama (local LLMs)](#14-ollama-local-llms)
+  - [1.5 Gemini CLI (hosted Gemini models)](#15-gemini-cli-hosted-gemini-models)
 - [2. Configuration](#2-configuration)
   - [2.1 Model string prefixes](#21-model-string-prefixes)
   - [2.2 Environment variables](#22-environment-variables)
@@ -55,13 +56,43 @@ Key features:
 ---
 
 ## 1. Installation
+### 1.1 Cloning the repository
 
-### 1.1 Core prerequisites
+This repository uses **Git LFS** for trained model weights (approximately 153 MB across two `.safetensors` files in `models/premises/`).
+
+**Install Git LFS before cloning:**
+
+- Linux: `sudo apt install git-lfs`
+- macOS: `brew install git-lfs`
+- Windows: download from https://git-lfs.com
+
+Then run once per machine (any directory):
+```bash
+git lfs install
+```
+
+After Git LFS is installed, clone normally:
+```bash
+git clone https://github.com/jamesburke05-droid/llm-isabelle
+cd llm-isabelle
+```
+
+The LFS-tracked files (`models/premises/encoder/model.safetensors`, `models/premises/rerank/model.safetensors`) are fetched automatically during the clone, adding approximately 150 MB to the download size.
+
+**If you cloned without Git LFS installed**, the trained model files will appear as small text pointer files (a few hundred bytes each, containing `version https://git-lfs.github.com/spec/v1...`). To fix this without re-cloning, install Git LFS then run:
+```bash
+git lfs pull
+```
+
+This fetches the actual model weights into your existing clone.
+
+### 1.2 Core prerequisites
+
 - **Python** 3.10 - 3.12 (3.13 won't work with some of the pytorch packages)
 - **Isabelle/HOL** (tested with Isabelle2025). Ensure `isabelle` is on your `$PATH`.
 - **System packages**: GNU Make, `g++`, etc. (used by Isabelle and some Python libs).
 
-### 1.2 Python setup
+### 1.3 Python setup
 ```bash
 python3 -m venv .venv
 source .venv/bin/activate          # Windows: .venv\Scripts\activate
@@ -74,7 +105,7 @@ pip install -U sentence-transformers
 ```
 If have problems, ChatGPT can usually solve it.
 
-### 1.3 Ollama (local LLMs)
+### 1.4 Ollama (local LLMs)
 Install and run Ollama: https://ollama.ai
 
 ```bash
@@ -86,7 +117,7 @@ ollama pull gemma3:27b
 ollama pull deepseek-r1:8b
 ```
 
-### 1.4 Gemini CLI (hosted Gemini models)
+### 1.5 Gemini CLI (hosted Gemini models)
 We support **Gemini via the official `gemini` CLI**.
 
 ```bash
