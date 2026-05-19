@@ -327,10 +327,28 @@ class MicroRAG:
 
 
 if __name__ == "__main__":
-    # Standalone smoke test
     import sys
     use_ce = "--cross-encoder" in sys.argv
-    print(f"=== Micro RAG smoke test (use_cross_encoder={use_ce}) ===")
+    force_rebuild = "--rebuild" in sys.argv
+
+    if force_rebuild:
+        print(f"=== Micro RAG force rebuild (cache version {INDEX_VERSION}) ===")
+        rag = MicroRAG(use_cross_encoder=False)
+        # Clear any stale v2 cache files before rebuild
+        for f in (CORPUS_FILE, EMBEDDINGS_FILE, METADATA_FILE):
+            if f.exists():
+                print(f"[micro_rag] removing stale cache: {f}")
+                f.unlink()
+        rag.build_index()  # builds from scratch, writes new cache files
+        print(f"[micro_rag] rebuild complete: {len(rag.corpus)} lemmas indexed")
+        print(f"[micro_rag] cache written to:")
+        print(f"  {CORPUS_FILE}")
+        print(f"  {EMBEDDINGS_FILE}")
+        print(f"  {METADATA_FILE}")
+        sys.exit(0)
+
+    # Default: smoke test on existing cache (or build if absent)
+    print(f"=== Micro RAG smoke test (use_cross_encoder={use_ce}, cache version {INDEX_VERSION}) ===")
     rag = MicroRAG(use_cross_encoder=use_ce)
     rag.build_or_load()
     print()
