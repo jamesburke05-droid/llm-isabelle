@@ -1,0 +1,16 @@
+goal,success,elapsed_s,mode,model,outline_chars,fills,failed_holes,had_sorry,verified_ok
+distinct xs \<Longrightarrow> distinct (rev xs),True,10.9441,auto,qwen2.5-coder:14b,65,0,0,False,True
+xs \<noteq> [] \<Longrightarrow> hd xs # tl xs = xs,True,16.1237,auto,qwen2.5-coder:14b,69,0,0,False,True
+filter P (filter Q xs) = filter (\<lambda>x. P x \<and> Q x) xs,True,20.8075,auto,qwen2.5-coder:14b,97,0,0,False,True
+length (filter P xs) \<le> length xs,True,16.8427,auto,qwen2.5-coder:14b,54,0,0,False,True
+set (rev xs) = set xs,True,16.5173,auto,qwen2.5-coder:14b,39,0,0,False,True
+sum_list (xs @ ys) \<ge> sum_list xs,False,882.0880,auto,qwen2.5-coder:14b,325,0,0,True,True
+\<forall>x \<in> set xs. P x \<Longrightarrow> list_all P xs,False,768.4898,auto,qwen2.5-coder:14b,312,0,0,True,True
+length xs = length ys \<Longrightarrow> length (zip xs ys) = length xs,True,21.6895,auto,qwen2.5-coder:14b,88,0,0,False,True
+foldr (#) xs [] = xs,True,246.5221,auto,qwen2.5-coder:14b,342,0,1,False,True
+length (concat xss) = sum_list (map length xss),False,1376.5196,auto,qwen2.5-coder:14b,365,0,0,True,True
+take (length xs) xs = xs,True,20.8827,auto,qwen2.5-coder:14b,42,0,0,False,True
+xs @ ys = zs @ ws \<Longrightarrow> length xs = length zs \<Longrightarrow> xs = zs,True,19.0645,auto,qwen2.5-coder:14b,101,0,0,False,True
+sum_list (map (\<lambda>_. (1::nat)) xs) = length xs,False,1378.0732,auto,qwen2.5-coder:14b,460,0,0,True,True
+distinct xs \<Longrightarrow> length (remdups xs) = length xs,True,19.0667,auto,qwen2.5-coder:14b,79,0,0,False,True
+map f (filter P xs) = filter P (map f xs) \<Longrightarrow> (\<forall>x \<in> set xs. P (f x) = P x),False,773.3184,auto,qwen2.5-coder:14b,567,0,0,True,True
