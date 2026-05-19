@@ -28,10 +28,17 @@ DEFAULT_THEORY_NAMES = [
     "List", "Nat", "Set", "Map", "Finite_Set", "Real", "Num",
 ]
 
+# AFP scanning: if AFP_HOME env var is set, the build also scans all .thy files
+# under $AFP_HOME/thys/<entry>/*.thy. Used for Tier 3 (full-AFP) Micro RAG.
+AFP_HOME_ENV = "AFP_HOME"
+
 INDEX_DIR = Path("models/micro_rag")
-CORPUS_FILE = INDEX_DIR / "corpus.jsonl"
-EMBEDDINGS_FILE = INDEX_DIR / "embeddings.npy"
-METADATA_FILE = INDEX_DIR / "micro_rag.json"
+# Index version. Bump when corpus selection changes (e.g., HOL-only → HOL+AFP).
+# This avoids silently loading a stale cache after a corpus change.
+INDEX_VERSION = "v2"  # v1 was HOL-only (2,113 lemmas); v2 includes full AFP
+CORPUS_FILE = INDEX_DIR / f"corpus.{INDEX_VERSION}.jsonl"
+EMBEDDINGS_FILE = INDEX_DIR / f"embeddings.{INDEX_VERSION}.npy"
+METADATA_FILE = INDEX_DIR / f"micro_rag.{INDEX_VERSION}.json"
 
 # Default location of the trained cross-encoder (from premise selection training)
 DEFAULT_CROSS_ENCODER_DIR = Path("models/premises")
@@ -86,18 +93,40 @@ def parse_theory_file(path: str) -> List[Dict]:
 
 
 def collect_theory_paths(theory_names: List[str]) -> List[str]:
+    """Resolve theory names to absolute paths.
+
+    Returns paths from:
+    1. ISABELLE_HOME/src/HOL/<name>.thy for each name in theory_names
+    2. If AFP_HOME is set, every .thy file under AFP_HOME/thys/
+    """
+    paths: List[str] = []
+
+    # 1. HOL standard library
     isabelle_home = os.environ.get("ISABELLE_HOME", "")
     if not isabelle_home:
         raise RuntimeError(
             "ISABELLE_HOME not set. Set it to your Isabelle installation root."
         )
-    paths = []
     for name in theory_names:
         candidate = Path(isabelle_home) / "src" / "HOL" / f"{name}.thy"
         if candidate.exists():
             paths.append(str(candidate))
         else:
-            print(f"[micro_rag] warning: theory file not found: {candidate}")
+            print(f"[micro_rag] warning: HOL theory file not found: {candidate}")
+
+    # 2. Optional AFP
+    afp_home = os.environ.get(AFP_HOME_ENV, "")
+    if afp_home:
+        afp_thys = Path(afp_home) / "thys"
+        if afp_thys.exists():
+            afp_thy_files = sorted(afp_thys.glob("*/**/*.thy"))
+            print(f"[micro_rag] AFP detected at {afp_home}: "
+                  f"{len(afp_thy_files)} .thy files across "
+                  f"{len(list(afp_thys.iterdir()))} entries")
+            paths.extend(str(p) for p in afp_thy_files)
+        else:
+            print(f"[micro_rag] warning: AFP_HOME set but {afp_thys} does not exist")
+
     return paths
 
 
