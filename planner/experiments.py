@@ -348,6 +348,8 @@ def _safe_plan_and_fill(*, goal: str, model: Optional[str], cfg) -> Tuple[Option
                 lib_templates=cfg.lib_templates,
                 alpha=cfg.alpha, beta=cfg.beta, gamma=cfg.gamma,
                 hintlex_path=cfg.hintlex, hintlex_top=cfg.hintlex_top,
+                micro_rag=getattr(cfg, "micro_rag_instance", None),
+                micro_rag_top=getattr(cfg, "micro_rag_top", 5),
             )
             return res, ""
         except Exception as e:
@@ -388,6 +390,8 @@ class BenchConfig:
     strict_no_sorry: bool
     verify: bool
     trace: bool
+    micro_rag_instance: Optional[Any] = None  # built once at bench startup if --micro-rag
+    micro_rag_top: int = 5
 
 @dataclass(slots=True)
 class BenchRow:
@@ -581,7 +585,22 @@ def cmd_bench(args: argparse.Namespace) -> None:
         CFG.PROVER_CONTEXT_ENABLE = bool(args.context)
         if args.context_files:
             raw = args.context_files.replace(",", " ").split()
-            CFG.PROVER_CONTEXT_FILES = [s for s in raw if s]        
+            CFG.PROVER_CONTEXT_FILES = [s for s in raw if s]
+
+        # Build Micro RAG index once before the suite loop if --micro-rag is set.
+        # The index is shared across all suites in this bench run.
+        micro_rag_instance = None
+        if bool(getattr(args, "micro_rag", False)):
+            try:
+                from planner.micro_rag import MicroRAG
+                print("[bench] Building Micro RAG index over HOL library...", flush=True)
+                micro_rag_instance = MicroRAG()
+                micro_rag_instance.build_or_load()
+                print(f"[bench] Micro RAG ready: {len(micro_rag_instance.corpus)} lemmas indexed", flush=True)
+            except Exception as _ex:
+                print(f"[bench] WARNING: Micro RAG build failed: {_ex}", flush=True)
+                print("[bench] Continuing without Micro RAG", flush=True)
+                micro_rag_instance = None
 
         for suite_name, goals_path in suites:
             goals = _read_goals_file(goals_path)
@@ -603,7 +622,9 @@ def cmd_bench(args: argparse.Namespace) -> None:
                 strict_no_sorry=args.strict_no_sorry,
                 verify=args.verify, trace=args.trace
             )
-
+            # Attach Micro RAG to cfg (post-init; works because BenchConfig declared these slots)
+            cfg.micro_rag_instance = micro_rag_instance
+            cfg.micro_rag_top = int(getattr(args, "micro_rag_top", 5))
             model_tag = args.model or os.environ.get("OLLAMA_MODEL", "env_default")
             cfg_name = (
                 f"mode_{cfg.mode}"
@@ -1139,6 +1160,13 @@ def main():
     pb.add_argument("--gamma", type=float, default=0.2)
     pb.add_argument("--hintlex", type=str, default=None)
     pb.add_argument("--hintlex-top", type=int, default=8)
+    pb.add_argument("--micro-rag", dest="micro_rag", action="store_true",
+                    help="Enable Micro RAG retrieval over HOL library theorems for outline generation")
+    pb.add_argument("--no-micro-rag", dest="micro_rag", action="store_false",
+                    help="Disable Micro RAG (default)")
+    pb.set_defaults(micro_rag=False)
+    pb.add_argument("--micro-rag-top", type=int, default=5,
+                    help="Number of top retrieval hits to include in the outline prompt")
     pb.add_argument("--model", type=str, default=None)
     pb.add_argument("--strict-no-sorry", action="store_true", help="Count success only when no 'sorry' is present")
     pb.add_argument("--verify", action="store_true", help="Compile outline with Isabelle if no 'sorry'")

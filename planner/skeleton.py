@@ -750,6 +750,9 @@ def propose_isar_skeleton_diverse_best(
     # NEW: hint lexicon
     hintlex_path: Optional[str] = None,
     hintlex_top: int = 8,
+    # NEW: Micro RAG (HOL library retrieval)
+    micro_rag: Optional[Any] = None,
+    micro_rag_top: int = 5,
 ) -> Tuple[Skeleton, Dict[str, Any]]:
     """
     Generate K outlines, optionally inject context & hintlex hints, run one-shot sketch checks,
@@ -764,7 +767,17 @@ def propose_isar_skeleton_diverse_best(
     hintlex = _load_hintlex(hintlex_path)
     if hintlex:
         rec_hints += _hints_from_hintlex(goal, hintlex, top=hintlex_top)
-    rec_hints = list(dict.fromkeys(rec_hints))[:12]  # stable de-dup + cap
+    # Micro RAG: dense-embedding retrieval over HOL standard library
+    if micro_rag is not None:
+        try:
+            retrieved = micro_rag.retrieve(goal, k=micro_rag_top)
+            for r in retrieved:
+                # Format as "name: statement" to match other rec_hints entries
+                rec_hints.append(f"{r['name']}: {r['statement']}")
+        except Exception as ex:
+            # Defensive: never let retrieval failure crash outline generation
+            pass
+    rec_hints = list(dict.fromkeys(rec_hints))[:20]  # stable de-dup + slightly higher cap to absorb micro-rag hits
 
     # Outline candidates (LLM) + optional library templates
     cands = propose_isar_skeletons(goal, model=model, temps=temps, k=k,
