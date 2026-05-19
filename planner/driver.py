@@ -593,7 +593,8 @@ def plan_and_fill(goal: str, model: Optional[str] = None, timeout: int = 100, *,
                  priors_path: Optional[str] = None, context_hints: bool = False,
                  lib_templates: bool = False, alpha: float = 1.0, beta: float = 0.5,
                  gamma: float = 0.2, hintlex_path: Optional[str] = None,
-                 hintlex_top: int = 8) -> PlanAndFillResult:
+                 hintlex_top: int = 8, micro_rag: Optional[Any] = None,
+                 micro_rag_top: int = 5) -> PlanAndFillResult:
     """Plan and fill holes in Isar proofs.
 
     Notes:
@@ -650,6 +651,7 @@ def plan_and_fill(goal: str, model: Optional[str] = None, timeout: int = 100, *,
                 context_hints=context_hints, lib_templates=lib_templates,
                 alpha=alpha, beta=beta, gamma=gamma, hintlex_path=hintlex_path,
                 hintlex_top=hintlex_top,
+                micro_rag=micro_rag, micro_rag_top=micro_rag_top,
             )
             full = best.text
 
@@ -868,6 +870,7 @@ def plan_and_fill(goal: str, model: Optional[str] = None, timeout: int = 100, *,
                                 force_outline=True, priors_path=priors_path, context_hints=context_hints,
                                 lib_templates=lib_templates, alpha=alpha, beta=beta, gamma=gamma,
                                 hintlex_path=hintlex_path, hintlex_top=hintlex_top,
+                                micro_rag=micro_rag, micro_rag_top=micro_rag_top,
                             )
                             full = best.text
                             repair_progress.clear()
