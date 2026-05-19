@@ -5,12 +5,16 @@ Implements the assignment specification's "Micro RAG extracted from AFP"
 feature in scaled-down form, indexing standard HOL theories (List, Nat,
 Set, etc.) plus sentence-transformer dense-embedding similarity retrieval.
 
+Optional cross-encoder re-ranking layer: when use_cross_encoder=True,
+bi-encoder retrieves top_k_dense (default 20) candidates and a trained
+cross-encoder re-ranks them; only the top k are returned. This improves
+precision at the cost of approximately one extra second per goal.
+
 Usage:
     from planner.micro_rag import MicroRAG
-    rag = MicroRAG()
+    rag = MicroRAG(use_cross_encoder=True)  # opt-in re-ranking
     rag.build_or_load()
     hits = rag.retrieve("length (rev xs) = length xs", k=5)
-    # hits = [{'name': 'List.length_rev', 'statement': '...', 'theory': 'List', 'score': 0.82}, ...]
 """
 
 from __future__ import annotations
@@ -18,34 +22,27 @@ import json
 import os
 import re
 from pathlib import Path
-from typing import List, Dict, Optional
+from typing import List, Dict, Optional, Tuple
 
-# Default HOL theories to index. Paths constructed from ISABELLE_HOME at runtime.
 DEFAULT_THEORY_NAMES = [
-    "List",
-    "Nat",
-    "Set",
-    "Map",
-    "Finite_Set",
-    "Real",
-    "Num",
+    "List", "Nat", "Set", "Map", "Finite_Set", "Real", "Num",
 ]
 
-# Default index cache location (under repo, gitignored if you wish)
 INDEX_DIR = Path("models/micro_rag")
 CORPUS_FILE = INDEX_DIR / "corpus.jsonl"
 EMBEDDINGS_FILE = INDEX_DIR / "embeddings.npy"
 METADATA_FILE = INDEX_DIR / "micro_rag.json"
 
-# Regex to extract theorem-like declarations from .thy files.
-# Captures: keyword, name, optional attribute brackets, then quoted statement.
-# Supports multi-line quoted statements via DOTALL.
+# Default location of the trained cross-encoder (from premise selection training)
+DEFAULT_CROSS_ENCODER_DIR = Path("models/premises")
+CROSS_ENCODER_META_FILE = "premises_reranker.json"
+
 LEMMA_RE = re.compile(
     r'(?:\b(?:lemma|theorem|corollary|proposition))\s+'
-    r'([a-zA-Z_][\w\.\']*)\s*'         # name (allow dots and primes)
-    r'(?:\[[^\]]{0,200}\])?\s*'         # optional attribute brackets
+    r'([a-zA-Z_][\w\.\']*)\s*'
+    r'(?:\[[^\]]{0,200}\])?\s*'
     r':\s*'
-    r'"([^"]{10,500})"',                # quoted statement, 10-500 chars
+    r'"([^"]{10,500})"',
     re.MULTILINE | re.DOTALL,
 )
 
@@ -54,20 +51,14 @@ WHITESPACE_RE = re.compile(r'\s+')
 
 
 def _strip_comments(text: str) -> str:
-    """Remove Isabelle (* ... *) comments. Non-nested only (simple version)."""
     return COMMENT_RE.sub(' ', text)
 
 
 def _normalise_statement(stmt: str) -> str:
-    """Collapse whitespace, trim. Keep symbolic content intact."""
     return WHITESPACE_RE.sub(' ', stmt).strip()
 
 
 def parse_theory_file(path: str) -> List[Dict]:
-    """Extract lemma declarations from a single .thy file.
-
-    Returns list of dicts with keys: name, statement, theory.
-    """
     try:
         with open(path, 'r', encoding='utf-8', errors='replace') as f:
             content = f.read()
@@ -82,7 +73,6 @@ def parse_theory_file(path: str) -> List[Dict]:
         statement = _normalise_statement(match.group(2))
         if not statement or len(statement) < 10 or len(statement) > 500:
             continue
-        # Dedupe within file (same name appearing twice)
         full_name = f"{theory_name}.{name}"
         if full_name in seen_names:
             continue
@@ -96,12 +86,10 @@ def parse_theory_file(path: str) -> List[Dict]:
 
 
 def collect_theory_paths(theory_names: List[str]) -> List[str]:
-    """Resolve theory names to absolute file paths under ISABELLE_HOME."""
     isabelle_home = os.environ.get("ISABELLE_HOME", "")
     if not isabelle_home:
         raise RuntimeError(
-            "ISABELLE_HOME not set. Set it to your Isabelle installation root "
-            "(e.g. C:/Isabelle2025-2/Isabelle2025-2 on Windows)."
+            "ISABELLE_HOME not set. Set it to your Isabelle installation root."
         )
     paths = []
     for name in theory_names:
@@ -114,13 +102,31 @@ def collect_theory_paths(theory_names: List[str]) -> List[str]:
 
 
 class MicroRAG:
-    """Retrieval over the HOL standard library using dense embeddings."""
+    """Retrieval over the HOL standard library using dense embeddings.
 
-    def __init__(self, model_name: str = "sentence-transformers/all-MiniLM-L6-v2"):
+    Optional second stage: when use_cross_encoder=True, a trained
+    sentence-transformers CrossEncoder re-ranks the bi-encoder's top
+    candidates for higher-precision final retrieval.
+    """
+
+    def __init__(
+        self,
+        model_name: str = "sentence-transformers/all-MiniLM-L6-v2",
+        use_cross_encoder: bool = False,
+        cross_encoder_model_dir: Optional[str] = None,
+        top_k_dense: int = 20,
+    ):
         self.model_name = model_name
         self.corpus: List[Dict] = []
         self.embeddings = None
         self._model = None
+        # Cross-encoder re-ranking
+        self.use_cross_encoder = bool(use_cross_encoder)
+        self.cross_encoder_model_dir = (
+            cross_encoder_model_dir or str(DEFAULT_CROSS_ENCODER_DIR)
+        )
+        self.top_k_dense = int(top_k_dense)
+        self._cross_encoder = None
 
     def _load_model(self):
         if self._model is None:
@@ -128,44 +134,71 @@ class MicroRAG:
             self._model = SentenceTransformer(self.model_name)
         return self._model
 
-    def build_index(self, theory_names: Optional[List[str]] = None) -> None:
-        """Parse theories, embed statements, save corpus + embeddings to disk."""
-        import numpy as np
+    def _load_cross_encoder(self):
+        """Lazy-load the trained cross-encoder from disk.
 
+        Reads metadata from models/premises/premises_reranker.json which
+        identifies the cross-encoder subdirectory. Caches the predict callable.
+        Returns None if loading fails (caller falls back to bi-encoder only).
+        """
+        if self._cross_encoder is not None:
+            return self._cross_encoder
+        if not self.use_cross_encoder:
+            return None
+        try:
+            meta_path = Path(self.cross_encoder_model_dir) / CROSS_ENCODER_META_FILE
+            if not meta_path.exists():
+                print(f"[micro_rag] cross-encoder metadata not found at {meta_path}; "
+                      "falling back to bi-encoder only")
+                self.use_cross_encoder = False
+                return None
+            meta = json.loads(meta_path.read_text(encoding="utf-8"))
+            if str(meta.get("type", "")) != "sbert-cross":
+                print(f"[micro_rag] unsupported cross-encoder type in {meta_path}; "
+                      "falling back to bi-encoder only")
+                self.use_cross_encoder = False
+                return None
+            rel = meta.get("model_relpath", "rerank")
+            mdir = str(Path(self.cross_encoder_model_dir) / rel)
+            from sentence_transformers import CrossEncoder
+            model = CrossEncoder(mdir)
+            def _score_pairs(pairs: List[Tuple[str, str]]) -> List[float]:
+                return model.predict(pairs).tolist()
+            self._cross_encoder = _score_pairs
+            print(f"[micro_rag] cross-encoder re-ranking enabled "
+                  f"(top_k_dense={self.top_k_dense}, model_dir={mdir})")
+            return self._cross_encoder
+        except Exception as ex:
+            print(f"[micro_rag] cross-encoder load failed: {ex}; "
+                  "falling back to bi-encoder only")
+            self.use_cross_encoder = False
+            return None
+
+    def build_index(self, theory_names: Optional[List[str]] = None) -> None:
+        import numpy as np
         theory_names = theory_names or DEFAULT_THEORY_NAMES
         theory_paths = collect_theory_paths(theory_names)
         INDEX_DIR.mkdir(parents=True, exist_ok=True)
-
-        # Parse each theory file
         all_entries: List[Dict] = []
         for path in theory_paths:
             entries = parse_theory_file(path)
             all_entries.extend(entries)
             print(f"[micro_rag] parsed {Path(path).stem}: {len(entries)} lemmas")
-
         if not all_entries:
-            print("[micro_rag] WARNING: no lemmas extracted; check theory paths and regex")
+            print("[micro_rag] WARNING: no lemmas extracted")
             return
-
         print(f"[micro_rag] total corpus: {len(all_entries)} lemmas")
-
-        # Embed
         model = self._load_model()
         statements = [e['statement'] for e in all_entries]
         print(f"[micro_rag] encoding {len(statements)} statements...")
         embeddings = model.encode(
-            statements,
-            batch_size=32,
-            show_progress_bar=True,
-            convert_to_numpy=True,
-            normalize_embeddings=True,
+            statements, batch_size=32, show_progress_bar=True,
+            convert_to_numpy=True, normalize_embeddings=True,
         )
-        print(f"[micro_rag] embedding shape: {embeddings.shape}")
-
-        # Save corpus + embeddings + metadata
         with open(CORPUS_FILE, 'w', encoding='utf-8') as f:
             for e in all_entries:
                 f.write(json.dumps(e) + '\n')
+        import numpy as np
         np.save(EMBEDDINGS_FILE, embeddings)
         with open(METADATA_FILE, 'w', encoding='utf-8') as f:
             json.dump({
@@ -175,13 +208,10 @@ class MicroRAG:
                 'theory_names': theory_names,
                 'normalize_embeddings': True,
             }, f, indent=2)
-
         self.corpus = all_entries
         self.embeddings = embeddings
-        print(f"[micro_rag] index saved to {INDEX_DIR}/")
 
     def load_index(self) -> bool:
-        """Load existing index from disk. Returns True on success."""
         import numpy as np
         if not (CORPUS_FILE.exists() and EMBEDDINGS_FILE.exists()):
             return False
@@ -195,53 +225,93 @@ class MicroRAG:
         return True
 
     def build_or_load(self, theory_names: Optional[List[str]] = None) -> None:
-        """Load cached index if present, otherwise build from scratch."""
         if not self.load_index():
             self.build_index(theory_names)
         else:
             print(f"[micro_rag] loaded cached index: {len(self.corpus)} lemmas")
 
     def retrieve(self, goal_text: str, k: int = 5) -> List[Dict]:
-        """Return top-K nearest indexed lemmas to the goal text."""
+        """Return top-k nearest indexed lemmas to the goal text.
+
+        When use_cross_encoder=True, retrieves top_k_dense candidates from
+        the bi-encoder, re-ranks them with the trained cross-encoder, and
+        returns the top k re-ranked. The 'score' field reflects the
+        re-ranked cross-encoder score.
+
+        When use_cross_encoder=False (default), returns top k by bi-encoder
+        cosine similarity directly.
+        """
         import numpy as np
         if self.embeddings is None or not self.corpus:
             return []
+
         model = self._load_model()
         q_emb = model.encode(
-            [goal_text],
-            convert_to_numpy=True,
-            normalize_embeddings=True,
+            [goal_text], convert_to_numpy=True, normalize_embeddings=True,
         )[0]
-        # Embeddings are unit-normalised so dot-product equals cosine similarity
+        # Normalised embeddings → dot product equals cosine similarity
         sims = self.embeddings @ q_emb
-        top_idx = np.argsort(-sims)[:k]
-        return [
-            dict(self.corpus[i], score=float(sims[i]))
-            for i in top_idx
-        ]
 
-    def format_for_prompt(self, retrieved: List[Dict]) -> str:
-        """Format retrieval results as a prompt section."""
-        if not retrieved:
-            return ""
-        lines = ["Relevant library lemmas:"]
-        for r in retrieved:
-            lines.append(f"  {r['name']}: {r['statement']}")
-        return "\n".join(lines)
+        # Without cross-encoder: simple top-k by bi-encoder similarity
+        if not self.use_cross_encoder:
+            top_idx = np.argsort(-sims)[:k]
+            return [
+                dict(self.corpus[i], score=float(sims[i]))
+                for i in top_idx
+            ]
+
+        # With cross-encoder: bi-encoder retrieves top_k_dense, cross-encoder re-ranks
+        cross = self._load_cross_encoder()
+        if cross is None:
+            # Loading failed; fall back to bi-encoder only
+            top_idx = np.argsort(-sims)[:k]
+            return [
+                dict(self.corpus[i], score=float(sims[i]))
+                for i in top_idx
+            ]
+
+        dense_top = np.argsort(-sims)[: self.top_k_dense]
+        pairs = [
+            (goal_text, self.corpus[i]['statement'])
+            for i in dense_top
+        ]
+        try:
+            ce_scores = cross(pairs)
+        except Exception as ex:
+            print(f"[micro_rag] cross-encoder predict failed: {ex}; "
+                  "falling back to bi-encoder scores")
+            top_idx = np.argsort(-sims)[:k]
+            return [
+                dict(self.corpus[i], score=float(sims[i]))
+                for i in top_idx
+            ]
+
+        # Sort the dense_top candidates by cross-encoder score, descending
+        scored = list(zip(dense_top.tolist(), ce_scores))
+        scored.sort(key=lambda x: -x[1])
+        final_top = scored[:k]
+
+        return [
+            dict(self.corpus[i], score=float(s))
+            for i, s in final_top
+        ]
 
 
 if __name__ == "__main__":
-    # Standalone smoke test - build index and demo a retrieval
-    rag = MicroRAG()
+    # Standalone smoke test
+    import sys
+    use_ce = "--cross-encoder" in sys.argv
+    print(f"=== Micro RAG smoke test (use_cross_encoder={use_ce}) ===")
+    rag = MicroRAG(use_cross_encoder=use_ce)
     rag.build_or_load()
     print()
-    print("=== Retrieval demo ===")
     for query in [
         "length (rev xs) = length xs",
         "rev (rev xs) = xs",
         "Suc n + m = Suc (n + m)",
     ]:
         hits = rag.retrieve(query, k=5)
-        print(f"\nQuery: {query}")
+        print(f"Query: {query}")
         for h in hits:
             print(f"  [{h['score']:.3f}] {h['name']}: {h['statement'][:80]}")
+        print()

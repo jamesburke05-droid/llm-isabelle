@@ -593,8 +593,10 @@ def cmd_bench(args: argparse.Namespace) -> None:
         if bool(getattr(args, "micro_rag", False)):
             try:
                 from planner.micro_rag import MicroRAG
-                print("[bench] Building Micro RAG index over HOL library...", flush=True)
-                micro_rag_instance = MicroRAG()
+                use_rerank = bool(getattr(args, "micro_rag_rerank", False))
+                print(f"[bench] Building Micro RAG index over HOL library "
+                      f"(cross-encoder re-rank: {'ON' if use_rerank else 'OFF'})...", flush=True)
+                micro_rag_instance = MicroRAG(use_cross_encoder=use_rerank)
                 micro_rag_instance.build_or_load()
                 print(f"[bench] Micro RAG ready: {len(micro_rag_instance.corpus)} lemmas indexed", flush=True)
             except Exception as _ex:
@@ -1167,6 +1169,11 @@ def main():
     pb.set_defaults(micro_rag=False)
     pb.add_argument("--micro-rag-top", type=int, default=5,
                     help="Number of top retrieval hits to include in the outline prompt")
+    pb.add_argument("--micro-rag-rerank", dest="micro_rag_rerank", action="store_true",
+                    help="Apply trained cross-encoder re-ranking to Micro RAG retrieval")
+    pb.add_argument("--no-micro-rag-rerank", dest="micro_rag_rerank", action="store_false",
+                    help="Disable cross-encoder re-ranking (default)")
+    pb.set_defaults(micro_rag_rerank=False)
     pb.add_argument("--model", type=str, default=None)
     pb.add_argument("--strict-no-sorry", action="store_true", help="Count success only when no 'sorry' is present")
     pb.add_argument("--verify", action="store_true", help="Compile outline with Isabelle if no 'sorry'")
