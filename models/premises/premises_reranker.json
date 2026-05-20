@@ -1,8 +1,12 @@
 {
   "type": "sbert-cross",
-  "model_relpath": "rerank",
+  "model_relpath": "rerank_v2",
   "base_model": "cross-encoder/ms-marco-MiniLM-L-2-v2",
-  "epochs": 1,
-  "batch_size": 4,
-  "pairs": 210725
+  "epochs": 2,
+  "batch_size": 32,
+  "pairs": 78285,
+  "finetune_data": "afp-augmented (66K positive pairs + 3x hard negatives via bi-encoder)",
+  "warm_start_from": "rerank (MagnusData-trained)",
+  "val_auc": 0.7158,
+  "val_accuracy": 0.8407
 }

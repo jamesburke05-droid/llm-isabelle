@@ -2,3 +2,4 @@ models/premises/**/*.safetensors filter=lfs diff=lfs merge=lfs -text
 models/premises/**/*.bin filter=lfs diff=lfs merge=lfs -text
 models/**/*.pt filter=lfs diff=lfs merge=lfs -text
 models/**/*.pth filter=lfs diff=lfs merge=lfs -text
+models/premises/rerank_v2/*.safetensors filter=lfs diff=lfs merge=lfs -text
