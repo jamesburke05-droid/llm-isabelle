@@ -1,0 +1,4 @@
+sum_list (xs @ ys) \<ge> sum_list xs
+\<forall>x \<in> set xs. P x \<Longrightarrow> list_all P xs
+sum_list (map (\<lambda>_. (1::nat)) xs) = length xs
+map f (filter P xs) = filter P (map f xs) \<Longrightarrow> (\<forall>x \<in> set xs. P (f x) = P x)

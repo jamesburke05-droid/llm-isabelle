@@ -898,9 +898,21 @@ def plan_and_fill(goal: str, model: Optional[str] = None, timeout: int = 100, *,
                 # No change from repair: count attempt and escalate
                 key = (hole_key, start_stage)
                 stage_tries[key] = stage_tries.get(key, 0) + 1
+
+                # CHANGED (G): cap retries on Stage 2 when CEGIS produces no
+                # change. Without this cap, focused_hole_key stays set and the
+                # outer loop spins on the same hole until budget exhaustion,
+                # producing a silent stall (no [repair] output between fill
+                # bail and final-debug). 
+                STAGE2_NOCHANGE_CAP = 2
+
                 if start_stage < 2:
                     repair_progress[hole_key] = min(start_stage + 1, 2)
                     focused_hole_key = hole_key
+                elif stage_tries[key] >= STAGE2_NOCHANGE_CAP:
+                    if trace:
+                        print(f"[repair] Stage 2 no-change after {stage_tries[key]} attempt(s); aborting repair on this hole")
+                    break
                 else:
                     repair_progress[hole_key] = 2
                     focused_hole_key = hole_key

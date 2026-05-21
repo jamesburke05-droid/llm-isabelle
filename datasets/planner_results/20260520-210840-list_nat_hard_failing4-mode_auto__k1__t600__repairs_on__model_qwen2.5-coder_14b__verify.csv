@@ -1,0 +1,5 @@
+goal,success,elapsed_s,mode,model,outline_chars,fills,failed_holes,had_sorry,verified_ok
+sum_list (xs @ ys) \<ge> sum_list xs,False,1234.9243,auto,qwen2.5-coder:14b,511,2,0,True,True
+\<forall>x \<in> set xs. P x \<Longrightarrow> list_all P xs,False,349.1470,auto,qwen2.5-coder:14b,355,2,0,False,False
+sum_list (map (\<lambda>_. (1::nat)) xs) = length xs,True,466.3891,auto,qwen2.5-coder:14b,508,2,0,False,True
+map f (filter P xs) = filter P (map f xs) \<Longrightarrow> (\<forall>x \<in> set xs. P (f x) = P x),False,986.6312,auto,qwen2.5-coder:14b,376,0,0,True,True
