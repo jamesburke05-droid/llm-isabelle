@@ -5,6 +5,7 @@ import re
 import os
 from dataclasses import dataclass
 from typing import Iterable, List, Optional, Tuple
+from planner.goal_tactics import goal_aware_finishers, rank_finisher_for_goal
 from concurrent.futures import ThreadPoolExecutor, TimeoutError as _FuturesTimeout
 import hashlib
 
@@ -89,37 +90,20 @@ def _try_oneshot_proof(isa, session: str, goal: str, *,
     t0 = time.monotonic()
     def left() -> float: return budget_s - (time.monotonic() - t0)
 
-    # Build the candidate list. Trivial tactics first, then induction patterns.
-    candidates = []
-    for tac in ["by simp", "by auto", "by (simp add: ac_simps)",
-                "by (simp add: algebra_simps)", "by linarith",
-                "by force", "by blast",
-                # P-1.1: library-lemma metis patterns. Each names a single
-                # HOL library lemma; metis will succeed when the goal is
-                # an instance of (or trivially derivable from) that lemma.
-                # These cover the most common list / map / rev / length
-                # identities; rare and easy to extend.
-                "by (metis rev_map)",
-                "by (metis map_append)",
-                "by (metis rev_append)",
-                "by (metis append_assoc)",
-                "by (metis length_rev)",
-                "by (metis length_map)",
-                "by (metis length_append)",
-                "by (metis rev_rev_ident)"]:
-        candidates.append(f'lemma "{goal}"\n  {tac}')
-
+    # Goal-shape-aware candidate list. The set of tactics is a superset of
+    # the previous hard-coded pre-pass (so worst case is the same attempts,
+    # reordered); the order prioritises tactics likely to close the specific
+    # shape of this goal. Induction patterns are appended at the end if there
+    # are free variables, matching the previous behaviour.
     fv = _free_inductive_vars(goal)
     if trace and fv:
         print(f"[oneshot] free vars: {fv}")
-    if fv:
-        v0 = fv[0]
-        for inner in ["auto", "simp_all"]:
-            candidates.append(f'lemma "{goal}"\n  by (induct {v0}) {inner}')
-        if len(fv) >= 2:
-            others = " ".join(fv[1:])
-            for inner in ["auto", "simp_all"]:
-                candidates.append(f'lemma "{goal}"\n  by (induct {v0} arbitrary: {others}) {inner}')
+
+    tactics = goal_aware_finishers(goal, fv)
+    candidates = [f'lemma "{goal}"\n  {tac}' for tac in tactics]
+
+    if trace:
+        print(f"[oneshot] goal-aware candidates: {len(candidates)}")
 
     for idx, cand in enumerate(candidates):
         if left() <= 0:
@@ -231,37 +215,16 @@ def _fill_one_hole(isabelle, session: str, full_text: str, hole_span: Tuple[int,
     if applies_from_keys:
         applies = applies or applies_from_keys  # prefer explicit list if steps were empty
 
-    # B1: prefer simpler tactics over complex ones when multiple candidates are
-    # available. Order: done < by simp < by auto < by linarith < by force 
-    # by blast < by fastforce < by arith < by (simp add: ...) < by metis < by smt.
-    # Falls back to lexical order for unknown tactics. This is a stable sort, so
-    # the prove_goal-suggested ranking is preserved within each priority bucket.
-    def _fin_priority(s):
-        s = (s or "").strip()
-        if s == "done": return 0
-        if s == "by simp": return 1
-        if s == "by auto": return 2
-        if s == "by linarith": return 3
-        if s == "by force": return 4
-        if s == "by blast": return 5
-        if s == "by fastforce": return 6
-        if s == "by arith": return 7
-        if s.startswith("by (simp add:"): return 8
-        if s.startswith("by (auto"): return 9
-        if s.startswith("by (metis"): return 10
-        if s.startswith("by metis"): return 10
-        if s.startswith("by (smt"): return 11
-        if s.startswith("by smt"): return 11
-        if s.startswith("by ("): return 12  # other parenthesised tactics
-        if s.startswith("by "): return 13   # any other by ...
-        return 99
-
+    # Goal-aware finisher ranking. rank_finisher_for_goal returns scores
+    # identical to the previous _fin_priority for unknown-shape goals, so
+    # behaviour on goals without a clear shape is bit-identical to today.
+    # For known shapes, tactics that fit the shape get a small score bonus.
     _step_fins = [s for s in steps if s.startswith("by ") or s.strip() == "done"]
-    _step_fins_sorted = sorted(_step_fins, key=_fin_priority)
+    _step_fins_sorted = sorted(_step_fins, key=lambda s: rank_finisher_for_goal(eff_goal, s))
     fin = _step_fins_sorted[0] if _step_fins_sorted else ""
     if not fin:
         _cand_fins = [x for x in fin_candidates if isinstance(x, str) and (x.startswith("by ") or x.strip() == "done")]
-        _cand_fins_sorted = sorted(_cand_fins, key=_fin_priority)
+        _cand_fins_sorted = sorted(_cand_fins, key=lambda s: rank_finisher_for_goal(eff_goal, s))
         fin = _cand_fins_sorted[0] if _cand_fins_sorted else ""
 
     # If neither steps nor recognized finishers were returned, report no-steps
