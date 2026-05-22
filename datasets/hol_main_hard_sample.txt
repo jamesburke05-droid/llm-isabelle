@@ -1,0 +1,93 @@
+(∀x0. P0 x0 ⟶ Q0 x0) ⟷ ¬(∃x0. P0 x0 ∧ ¬ Q0 x0)
+(∀x1. P1 x1) ⟶ ((∃x1. Q1 x1) ⟶ ∃x1. P1 x1 ∧ Q1 x1)
+(∃x2. P2 x2 ∧ (Q2 x2 ⟶ R2 x2)) ⟶ (∃x2. P2 x2 ⟶ R2 x2)
+(∀x3. P3 x3 ⟶ Q3 x3) ∧ (∀x3. Q3 x3 ⟶ R3 x3) ⟶ (∀x3. P3 x3 ⟶ R3 x3)
+(¬ (∃x4. P4 x4)) ⟷ (∀x4. ¬ P4 x4)
+((if P5 x5 then True else False) = P5 x5)
+((if P6 x6 then y6 else z6) = y6) ⟷ P6 x6
+((if P7 x7 then y7 else z7) = z7) ⟷ ¬ P7 x7
+(f = g) ⟷ (∀x8. f x8 = g x8)
+x0 ∈ f0 -` A0 ⟷ f0 x0 ∈ A0
+f1 -` (A1 ∪ B1) = (f1 -` A1) ∪ (f1 -` B1)
+f2 -` (A2 ∩ B2) = (f2 -` A2) ∩ (f2 -` B2)
+(A3 ⊆ B3) ⟷ (∀x3. x3 ∈ A3 ⟶ x3 ∈ B3)
+A4 = B4 ⟷ (A4 ⊆ B4 ∧ B4 ⊆ A4)
+{x5∈A5. P5 x5} ∪ {x5∈A5. ¬ P5 x5} = A5
+{x6∈A6. P6 x6} ∩ {x6∈A6. ¬ P6 x6} = {}
+f7 ` (A7 ∩ B7) ⊆ (f7 ` A7) ∩ (f7 ` B7)
+f8 ` (A8 ∪ B8) = (f8 ` A8) ∪ (f8 ` B8)
+(g ∘ f) ` A9 = g ` (f ` A9)
+(A10 - B10) ∪ (A10 ∩ B10) = A10
+(A11 - B11) ∩ B11 = {}
+(A12 × B12) ∩ (A12 × C12) = A12 × (B12 ∩ C12)
+(x13,x13) ∈ Id ⟷ True
+(x14 ∈ A14 ∧ x14 ∈ B14) ⟷ x14 ∈ (A14 ∩ B14)
+(x15 ∈ A15 ∨ x15 ∈ B15) ⟷ x15 ∈ (A15 ∪ B15)
+converse (converse r0) = r0
+(converse (r1 O s1)) = (converse s1) O (converse r1)
+Id O r2 = r2
+r3 O Id = r3
+Domain (converse r4) = Range r4
+Range (converse r5) = Domain r5
+Domain Id = UNIV
+Range Id = UNIV
+Domain (r8 O s8) ⊆ Domain r8
+Range (r9 O s9) ⊆ Range s9
+r10 ⊆ s10 ⟹ converse r10 ⊆ converse s10
+r11 ⊆ s11 ⟹ t11 O r11 ⊆ t11 O s11
+r12 ⊆ s12 ⟹ r12 O t12 ⊆ s12 O t12
+trans r13 ⟶ r13 O r13 ⊆ r13
+r14 ⊆ rtrancl r14
+rtrancl r15 O rtrancl r15 ⊆ rtrancl r15
+converse (rtrancl r16) = rtrancl (converse r16)
+(∀x17 y17. (x17,y17) ∈ r17 ⟶ (y17,x17) ∈ converse r17)
+inj_on f0 A0 ⟷ (∀x0∈A0. ∀y0∈A0. f0 x0 = f0 y0 ⟶ x0 = y0)
+surj f1 ⟷ (∀y1. ∃x1. f1 x1 = y1)
+(g ∘ f) x2 = g (f x2)
+(∀x3∈A3. f3 x3 = g3 x3) ⟶ f3 ` A3 = g3 ` A3
+bij_betw f4 A4 B4 ⟷ (inj_on f4 A4 ∧ f4 ` A4 = B4)
+take n0 xs0 @ drop n0 xs0 = xs0
+map f1 (take n1 xs1) = take n1 (map f1 xs1)
+map f2 (drop n2 xs2) = drop n2 (map f2 xs2)
+i3 < length xs3 ⟹ nth (map f3 xs3) i3 = f3 (nth xs3 i3)
+i4 < length xs4 ⟹ nth (xs4 @ ys4) i4 = nth xs4 i4
+¬ (i5 < length xs5) ⟹ nth (xs5 @ ys5) i5 = nth ys5 (i5 - length xs5)
+length (zip xs6 ys6) = min (length xs6) (length ys6)
+map fst (zip xs7 ys7) = take (min (length xs7) (length ys7)) xs7
+map snd (zip xs8 ys8) = take (min (length xs8) (length ys8)) ys8
+zip (map f9 xs9) (map g9 ys9) = map (λ(x,y). (f9 x, g9 y)) (zip xs9 ys9)
+filter P10 (xs10 @ ys10) = filter P10 xs10 @ filter P10 ys10
+length (filter P11 xs11) ≤ length xs11
+rev (rev xs12) = xs12
+rev (xs13 @ ys13) = rev ys13 @ rev xs13
+distinct xs14 ⟹ set (remdups xs14) = set xs14
+set (take n15 xs15) ⊆ set xs15
+set (drop n16 xs16) ⊆ set xs16
+x17 ∈ set (remove1 x17 (x17 # xs17)) ⟷ x17 ∈ set xs17
+(∀n0::nat. m0 ≤ m0 + n0)
+(∀n1::nat. m1 ≤ n1 ⟶ m1 ≤ n1 + k1)
+(min (m2::nat) n2) + (max m2 n2) = m2 + n2
+(m3::nat) + Suc n3 = Suc (m3 + n3)
+(m4::nat) + n4 = n4 + m4
+(m5::nat) ≤ n5 ⟶ m5 + k5 ≤ n5 + k5
+length ([m6..<(m6+n6)]) = n6
+map Suc ([m7..<(m7+n7)]) = [Suc m7 ..< (Suc (m7+n7))]
+abs((a0::int) - b0) = abs(b0 - a0)
+(a1::int) - b1 = a1 + (-b1)
+- ((a2::int) + b2) = (-a2) + (-b2)
+abs((a3::int) + b3) ≤ abs a3 + abs b3
+(min (a4::int) b4) + (max a4 b4) = a4 + b4
+(a5::int) + (b5 + c5) = (a5 + b5) + c5
+(a6::int) + b6 = b6 + a6
+abs(-(a7::int)) = abs a7
+fst (x0,y0) = x0
+snd (x1,y1) = y1
+split f2 (x2,y2) = f2 x2 y2
+(x,y) ∈ (A × B) ⟷ (x ∈ A ∧ y ∈ B)
+case_option d4 f4 None = d4
+case_option d5 f5 (Some x5) = f5 x5
+map_option f6 None = None
+map_option f7 (Some x7) = Some (f7 x7)
+map_option f8 (map_option g8 o8) = map_option (f8 ∘ g8) o8
+case_sum f9 g9 (Inl x9) = f9 x9
+case_sum f10 g10 (Inr y10) = g10 y10
