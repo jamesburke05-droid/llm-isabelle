@@ -783,14 +783,15 @@ def _repair_block(current_text: str, lines: List[str], start: int, end: int, goa
         patched = "\n".join(patched_lines)
         
     
-        # ADD THESE TWO LINES
-        print(f"[DEBUG repair_block] patched proof:")
-        print(patched)
-        print("[end patched]")
+        if trace:
+            print(f"[DEBUG repair_block] patched proof:")
+            print(patched)
+            print("[end patched]")
         
         thy = build_theory(patched.splitlines(), add_print_state=False, end_with=None)
         ok, _ = finished_ok(_run_theory_with_timeout(isabelle, session, thy, timeout_s=_ISA_VERIFY_TIMEOUT_S))
-        print(f"[DEBUG repair_block] verify after patch: ok={ok}, block_type={block_type}, last_output_starts={blk_with_sorry[:60]!r}")
+        if trace:
+            print(f"[DEBUG repair_block] verify after patch: ok={ok}, block_type={block_type}, last_output_starts={blk_with_sorry[:60]!r}")
         if ok:
             return patched
         
