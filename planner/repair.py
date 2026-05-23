@@ -10,6 +10,7 @@ from concurrent.futures import ThreadPoolExecutor, TimeoutError as _FuturesTimeo
 import requests
 from typing import Callable
 from planner.repair_inputs import _find_first_hole, _hole_line_bounds, _APPLY_OR_BY, _snippet_window, _clamp_line_index, _quick_state_and_errors, _extract_error_lines, _run_theory_with_timeout, _print_state_before_hole, _nearest_header, _recent_steps, _normalize_error_texts, _facts_from_state, get_counterexample_hints_for_repair, _earliest_failure_anchor
+from planner.repair_classifier import classify_isabelle_failure, failure_prompt_text, FAILURE_UNKNOWN
 from planner.prompts import _LOCAL_SYSTEM, _LOCAL_USER, _BLOCK_SYSTEM, _BLOCK_USER
 from prover.config import MODEL as DEFAULT_MODEL, OLLAMA_HOST, TIMEOUT_S as OLLAMA_TIMEOUT_S, OLLAMA_NUM_PREDICT, TEMP as OLLAMA_TEMP, TOP_P as OLLAMA_TOP_P
 from prover.isabelle_api import build_theory, run_theory, last_print_state_block, finished_ok
@@ -667,8 +668,20 @@ def try_cegis_repairs(*, full_text: str, hole_span: Tuple[int, int], goal_text: 
 def _repair_block(current_text: str, lines: List[str], start: int, end: int, goal_text: str, 
                  state0: str, isabelle, session: str, model: Optional[str], left, trace: bool, 
                  block_type: str, stage: int, *, prior_store: Optional[Dict[str, List[str]]] = None) -> str:
-    _, errs = _quick_state_and_errors(isabelle, session, current_text)
+    state_quick, errs = _quick_state_and_errors(isabelle, session, current_text)
     err_texts = _normalize_error_texts(errs)
+    # Failure-classification layer. Returns FAILURE_UNKNOWN with empty hint
+    # when no high-confidence pattern matches, in which case the prompt is
+    # bit-identical to today. When a high-confidence pattern matches, a
+    # short advisory diagnosis is prepended to the error text.
+    failure = classify_isabelle_failure(
+        errors=errs, state=state0 or state_quick, goal=goal_text,
+        proof_text=current_text,
+    )
+    failure_txt = failure_prompt_text(failure)
+    if failure_txt:
+        err_texts = [failure_txt] + err_texts
+        _log("repair", "failure classification", failure_txt, trace=trace)
     ce = get_counterexample_hints_for_repair(isabelle, session, state0, timeout_s=10)
     block = "\n".join(lines[start:end])
     
@@ -688,7 +701,17 @@ def _repair_block(current_text: str, lines: List[str], start: int, end: int, goa
         if left() <= 3.0:
             break
         mem.rounds = rr + 1
-        why = f"Previous {block_type}-block attempt did not solve the goal; try a different strategy."
+        # Inject classified failure kind into the why string when available.
+        # On UNKNOWN, this falls back to the original phrasing so the prompt
+        # is bit-identical to today.
+        if failure.kind != FAILURE_UNKNOWN:
+            why = (
+                f"Previous {block_type}-block attempt did not solve the goal. "
+                f"Classified failure: {failure.kind}. {failure.repair_hint} "
+                "Try a different strategy from the prior failed blocks."
+            )
+        else:
+            why = f"Previous {block_type}-block attempt did not solve the goal; try a different strategy."
         timeout = int(min(60, max(8, left() * (0.55 / max(1, rounds - rr)))))
         
         # Build prior failed blocks text (trim + separators)
@@ -783,14 +806,15 @@ def _repair_block(current_text: str, lines: List[str], start: int, end: int, goa
         patched = "\n".join(patched_lines)
         
     
-        # ADD THESE TWO LINES
-        print(f"[DEBUG repair_block] patched proof:")
-        print(patched)
-        print("[end patched]")
+        if trace:
+            print(f"[DEBUG repair_block] patched proof:")
+            print(patched)
+            print("[end patched]")
         
         thy = build_theory(patched.splitlines(), add_print_state=False, end_with=None)
         ok, _ = finished_ok(_run_theory_with_timeout(isabelle, session, thy, timeout_s=_ISA_VERIFY_TIMEOUT_S))
-        print(f"[DEBUG repair_block] verify after patch: ok={ok}, block_type={block_type}, last_output_starts={blk_with_sorry[:60]!r}")
+        if trace:
+            print(f"[DEBUG repair_block] verify after patch: ok={ok}, block_type={block_type}, last_output_starts={blk_with_sorry[:60]!r}")
         if ok:
             return patched
         
