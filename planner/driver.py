@@ -425,7 +425,7 @@ def _repair_failed_proof_topdown(isa, session, full: str, goal_text: str, model:
             return full, False
 
         if applied and patched != full:
-            if _verify_full_proof(isa, session, patched):
+            if "sorry" not in patched and _verify_full_proof(isa, session, patched):
                 return patched, True
 
             # Partial progress: keep it, then try to open the failing spot into a 'sorry'
@@ -799,7 +799,7 @@ def plan_and_fill(goal: str, model: Optional[str] = None, timeout: int = 100, *,
 
                 if patched != full:
                     try:
-                        if _verify_full_proof(isa, session, patched):
+                        if "sorry" not in patched and _verify_full_proof(isa, session, patched):
                             if trace:
                                 print(f"[repair] Stage {current_stage} repair verified! Clearing progress and moving on.")
                             full = patched
